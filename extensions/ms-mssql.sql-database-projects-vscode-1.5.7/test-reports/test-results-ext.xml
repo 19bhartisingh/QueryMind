@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Mocha Tests" time="7.658" tests="175" failures="0" skipped="100">
+  <testsuite name="Root Suite" timestamp="2026-02-25T18:07:55" tests="0" time="0.000" failures="0">
+  </testsuite>
+  <testsuite name="Tests to verify utils functions" timestamp="2026-02-25T18:07:55" tests="7" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/utils.test.js" time="0.128" failures="0">
+    <testcase name="Tests to verify utils functions Should determine existence of files/folders" time="0.019" classname="Should determine existence of files/folders">
+    </testcase>
+    <testcase name="Tests to verify utils functions Should get correct relative paths of files/folders" time="0.002" classname="Should get correct relative paths of files/folders">
+    </testcase>
+    <testcase name="Tests to verify utils functions Should remove $() from sqlcmd variables" time="0.000" classname="Should remove $() from sqlcmd variables">
+    </testcase>
+    <testcase name="Tests to verify utils functions Should make variable be in sqlcmd variable format with $()" time="0.000" classname="Should make variable be in sqlcmd variable format with $()">
+    </testcase>
+    <testcase name="Tests to verify utils functions Should determine invalid sqlcmd variable names" time="0.001" classname="Should determine invalid sqlcmd variable names">
+    </testcase>
+    <testcase name="Tests to verify utils functions Should convert from milliseconds to hr min sec correctly" time="0.000" classname="Should convert from milliseconds to hr min sec correctly">
+    </testcase>
+    <testcase name="Tests to verify utils functions Should correctly detect present commands" time="0.011" classname="Should correctly detect present commands">
+    </testcase>
+  </testsuite>
+  <testsuite name="Update Project From Database Quickpicks" timestamp="2026-02-25T18:07:55" tests="4" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/updateProjectFromDatabaseQuickpick.test.js" time="0.055" failures="0">
+    <testcase name="Update Project From Database Quickpicks Should build UpdateProjectDataModel when user selects workspace project and Update action" time="0.007" classname="Should build UpdateProjectDataModel when user selects workspace project and Update action">
+    </testcase>
+    <testcase name="Update Project From Database Quickpicks Should not invoke callback when user cancels project selection" time="0.001" classname="Should not invoke callback when user cancels project selection">
+    </testcase>
+    <testcase name="Update Project From Database Quickpicks Should use provided project file path without prompting when passed as parameter" time="0.003" classname="Should use provided project file path without prompting when passed as parameter">
+    </testcase>
+    <testcase name="Update Project From Database Quickpicks Should prompt for project when no project file path is provided as parameter" time="0.003" classname="Should prompt for project when no project file path is provided as parameter">
+    </testcase>
+  </testsuite>
+  <testsuite name="Templates" timestamp="2026-02-25T18:07:55" tests="18" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/templates.test.js" time="0.089" failures="0">
+    <testcase name="Templates Should throw error when attempting to use templates before loaded from file" time="0.000" classname="Should throw error when attempting to use templates before loaded from file">
+    </testcase>
+    <testcase name="Templates Should load all templates from files" time="0.002" classname="Should load all templates from files">
+    </testcase>
+    <testcase name="Templates Should have Schema item template" time="0.001" classname="Should have Schema item template">
+    </testcase>
+    <testcase name="Templates Should have Table item template" time="0.000" classname="Should have Table item template">
+    </testcase>
+    <testcase name="Templates Should have View item template" time="0.000" classname="Should have View item template">
+    </testcase>
+    <testcase name="Templates Should have Stored Procedure item template" time="0.001" classname="Should have Stored Procedure item template">
+    </testcase>
+    <testcase name="Templates Should have Script item template" time="0.000" classname="Should have Script item template">
+    </testcase>
+    <testcase name="Templates Should have Data Source item template" time="0.000" classname="Should have Data Source item template">
+    </testcase>
+    <testcase name="Templates Should have File Format item template" time="0.000" classname="Should have File Format item template">
+    </testcase>
+    <testcase name="Templates Should have External Stream item template" time="0.000" classname="Should have External Stream item template">
+    </testcase>
+    <testcase name="Templates Should have External Streaming Job item template" time="0.000" classname="Should have External Streaming Job item template">
+    </testcase>
+    <testcase name="Templates Should have Pre-Deployment Script item template" time="0.000" classname="Should have Pre-Deployment Script item template">
+    </testcase>
+    <testcase name="Templates Should have Post-Deployment Script item template" time="0.001" classname="Should have Post-Deployment Script item template">
+    </testcase>
+    <testcase name="Templates Should have Publish Profile item template" time="0.000" classname="Should have Publish Profile item template">
+    </testcase>
+    <testcase name="Templates Should have Table-Valued Function item template" time="0.001" classname="Should have Table-Valued Function item template">
+    </testcase>
+    <testcase name="Templates Should have Trigger item template" time="0.000" classname="Should have Trigger item template">
+    </testcase>
+    <testcase name="Templates Should have Database Trigger item template" time="0.001" classname="Should have Database Trigger item template">
+    </testcase>
+    <testcase name="Templates Should have Sequence item template" time="0.000" classname="Should have Sequence item template">
+    </testcase>
+  </testsuite>
+  <testsuite name="Project Tree tests" timestamp="2026-02-25T18:07:55" tests="4" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/projectTree.test.js" time="0.027" failures="0">
+    <testcase name="Project Tree tests Should correctly order tree nodes by type, then by name" time="0.020" classname="Should correctly order tree nodes by type, then by name">
+    </testcase>
+    <testcase name="Project Tree tests Should build tree from Project file correctly" time="0.003" classname="Should build tree from Project file correctly">
+    </testcase>
+    <testcase name="Project Tree tests Should be able to parse windows relative path as platform safe path" time="0.001" classname="Should be able to parse windows relative path as platform safe path">
+    </testcase>
+    <testcase name="Project Tree tests Should be able to parse and include relative paths outside project folder" time="0.001" classname="Should be able to parse and include relative paths outside project folder">
+    </testcase>
+  </testsuite>
+  <testsuite name="ProjectsController" timestamp="2026-02-25T18:07:55" tests="0" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/projectController.test.js" time="0.000" failures="0">
+  </testsuite>
+  <testsuite name="project controller operations" timestamp="2026-02-25T18:07:55" tests="0" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/projectController.test.js" time="0.000" failures="0">
+  </testsuite>
+  <testsuite name="Project file operations and prompting" timestamp="2026-02-25T18:07:55" tests="26" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/projectController.test.js" time="0.039" failures="0">
+    <testcase name="ProjectsController project controller operations Project file operations and prompting Should create new sqlproj file with correct specified target platform" time="0.010" classname="Should create new sqlproj file with correct specified target platform">
+    </testcase>
+    <testcase name="ProjectsController project controller operations Project file operations and prompting Should return silently when no SQL object name provided in prompts" time="0.003" classname="Should return silently when no SQL object name provided in prompts">
+    </testcase>
+    <testcase name="ProjectsController project controller operations Project file operations and prompting Should not create file if no itemTypeName is selected" time="0.002" classname="Should not create file if no itemTypeName is selected">
+    </testcase>
+    <testcase name="ProjectsController project controller operations Project file operations and prompting Should parse schema and object name from user input" time="0.000" classname="Should parse schema and object name from user input">
+    </testcase>
+    <testcase name="ProjectsController project controller operations Project file operations and prompting Should create .vscode/tasks.json at workspace level with isDefault=true when configureDefaultBuild is true" time="0.005" classname="Should create .vscode/tasks.json at workspace level with isDefault=true when configureDefaultBuild is true">
+    </testcase>
+    <testcase name="ProjectsController project controller operations Project file operations and prompting Should merge SQL build task into existing tasks.json when it already exists at workspace level" time="0.007" classname="Should merge SQL build task into existing tasks.json when it already exists at workspace level">
+    </testcase>
+  </testsuite>
+  <testsuite name="Publishing and script generation" timestamp="2026-02-25T18:07:55" tests="1" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/projectController.test.js" time="0.005" failures="0">
+    <testcase name="ProjectsController project controller operations Publishing and script generation publishProject should invoke mssql.publishDatabaseProject command with correct project path" time="0.002" classname="publishProject should invoke mssql.publishDatabaseProject command with correct project path">
+    </testcase>
+  </testsuite>
+  <testsuite name="Create project from database operations and dialog" timestamp="2026-02-25T18:07:55" tests="4" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/projectController.test.js" time="0.009" failures="0">
+    <testcase name="ProjectsController Create project from database operations and dialog Should error out for inaccessible path" time="0.002" classname="Should error out for inaccessible path">
+    </testcase>
+    <testcase name="ProjectsController Create project from database operations and dialog Should set model filePath correctly for ExtractType = File" time="0.001" classname="Should set model filePath correctly for ExtractType = File">
+    </testcase>
+    <testcase name="ProjectsController Create project from database operations and dialog Should set model filePath correctly for ExtractType = Schema/Object Type" time="0.000" classname="Should set model filePath correctly for ExtractType = Schema/Object Type">
+    </testcase>
+  </testsuite>
+  <testsuite name="Add database reference" timestamp="2026-02-25T18:07:55" tests="2" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/projectController.test.js" time="0.000" failures="0">
+  </testsuite>
+  <testsuite name="AutoRest generation" timestamp="2026-02-25T18:07:55" tests="1" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/projectController.test.js" time="0.001" failures="0">
+  </testsuite>
+  <testsuite name="Move file" timestamp="2026-02-25T18:07:55" tests="6" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/projectController.test.js" time="0.000" failures="0">
+  </testsuite>
+  <testsuite name="Rename file" timestamp="2026-02-25T18:07:55" tests="4" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/projectController.test.js" time="0.001" failures="0">
+  </testsuite>
+  <testsuite name="SqlCmd Variables" timestamp="2026-02-25T18:07:55" tests="5" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/projectController.test.js" time="0.010" failures="0">
+  </testsuite>
+  <testsuite name="Project: sqlproj content operations" timestamp="2026-02-25T18:07:55" tests="12" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/project.test.js" time="0.001" failures="0">
+  </testsuite>
+  <testsuite name="Project: sdk style project content operations" timestamp="2026-02-25T18:07:55" tests="7" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/project.test.js" time="0.000" failures="0">
+  </testsuite>
+  <testsuite name="Project: database references" timestamp="2026-02-25T18:07:55" tests="20" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/project.test.js" time="0.001" failures="0">
+  </testsuite>
+  <testsuite name="Project: add SQLCMD Variables" timestamp="2026-02-25T18:07:55" tests="1" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/project.test.js" time="0.001" failures="0">
+  </testsuite>
+  <testsuite name="Project: publish profiles" timestamp="2026-02-25T18:07:55" tests="1" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/project.test.js" time="0.000" failures="0">
+  </testsuite>
+  <testsuite name="Project: properties" timestamp="2026-02-25T18:07:55" tests="9" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/project.test.js" time="0.001" failures="0">
+  </testsuite>
+  <testsuite name="Project: round trip updates" timestamp="2026-02-25T18:07:55" tests="9" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/project.test.js" time="0.000" failures="0">
+  </testsuite>
+  <testsuite name="NewProjectTool: New project tool tests" timestamp="2026-02-25T18:07:55" tests="4" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/newProjectTool.test.js" time="0.020" failures="0">
+    <testcase name="NewProjectTool: New project tool tests Should generate correct default project names" time="0.002" classname="Should generate correct default project names">
+    </testcase>
+    <testcase name="NewProjectTool: New project tool tests Should auto-increment default project names for new projects" time="0.002" classname="Should auto-increment default project names for new projects">
+    </testcase>
+    <testcase name="NewProjectTool: New project tool tests Should auto-increment default project names for create project for database" time="0.003" classname="Should auto-increment default project names for create project for database">
+    </testcase>
+    <testcase name="NewProjectTool: New project tool tests Should not return a project name if undefined is passed in " time="0.000" classname="Should not return a project name if undefined is passed in ">
+    </testcase>
+  </testsuite>
+  <testsuite name="NetCoreTool: Net core tests" timestamp="2026-02-25T18:07:55" tests="3" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/netCoreTool.test.js" time="0.931" failures="0">
+    <testcase name="NetCoreTool: Net core tests Should override dotnet default value with settings" time="0.899" classname="Should override dotnet default value with settings">
+    </testcase>
+    <testcase name="NetCoreTool: Net core tests Should find right dotnet default paths" time="0.001" classname="Should find right dotnet default paths">
+    </testcase>
+    <testcase name="NetCoreTool: Net core tests should run a command successfully" time="0.017" classname="should run a command successfully">
+    </testcase>
+  </testsuite>
+  <testsuite name="MainController: main controller operations" timestamp="2026-02-25T18:07:56" tests="2" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/mainController.test.js" time="0.030" failures="0">
+    <testcase name="MainController: main controller operations Should create new instance without error" time="0.000" classname="Should create new instance without error">
+    </testcase>
+    <testcase name="MainController: main controller operations Should activate and deactivate without error" time="0.002" classname="Should activate and deactivate without error">
+    </testcase>
+  </testsuite>
+  <testsuite name="Data Sources: DataSource operations" timestamp="2026-02-25T18:07:56" tests="2" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/datasource.test.js" time="0.035" failures="0">
+    <testcase name="Data Sources: DataSource operations Should be able to create sql data source from connection strings with and without ending semicolon" time="0.000" classname="Should be able to create sql data source from connection strings with and without ending semicolon">
+    </testcase>
+  </testsuite>
+  <testsuite name="Create Project From Database Quickpick" timestamp="2026-02-25T18:07:56" tests="10" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/createProjectFromDatabaseQuickpick.test.js" time="0.036" failures="0">
+    <testcase name="Create Project From Database Quickpick Should prompt for connection and exit when connection is not selected" time="0.002" classname="Should prompt for connection and exit when connection is not selected">
+    </testcase>
+    <testcase name="Create Project From Database Quickpick Should not prompt for connection when connectionInfo is provided and exit when db is not selected" time="0.002" classname="Should not prompt for connection when connectionInfo is provided and exit when db is not selected">
+    </testcase>
+    <testcase name="Create Project From Database Quickpick Should exit when project name is not selected" time="0.002" classname="Should exit when project name is not selected">
+    </testcase>
+    <testcase name="Create Project From Database Quickpick Should exit when project location is not selected" time="0.001" classname="Should exit when project location is not selected">
+    </testcase>
+    <testcase name="Create Project From Database Quickpick Should exit when project location is not selected (test repeatedness for project location)" time="0.002" classname="Should exit when project location is not selected (test repeatedness for project location)">
+    </testcase>
+    <testcase name="Create Project From Database Quickpick Should exit when folder structure is not selected and folder is selected through browsing (test repeatedness for project location)" time="0.002" classname="Should exit when folder structure is not selected and folder is selected through browsing (test repeatedness for project location)">
+    </testcase>
+    <testcase name="Create Project From Database Quickpick Should exit when folder structure is not selected and existing folder/file location is selected" time="0.006" classname="Should exit when folder structure is not selected and existing folder/file location is selected">
+    </testcase>
+    <testcase name="Create Project From Database Quickpick Should exit when include permissions is not selected" time="0.002" classname="Should exit when include permissions is not selected">
+    </testcase>
+    <testcase name="Create Project From Database Quickpick Should exit when sdk style project is not selected" time="0.002" classname="Should exit when sdk style project is not selected">
+    </testcase>
+    <testcase name="Create Project From Database Quickpick Should create project when all the information is provided" time="0.002" classname="Should create project when all the information is provided">
+    </testcase>
+  </testsuite>
+  <testsuite name="BuildHelper: Build Helper tests" timestamp="2026-02-25T18:07:56" tests="5" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/buildHelper.test.js" time="6.181" failures="0">
+    <testcase name="BuildHelper: Build Helper tests Should get correct build arguments for legacy-style projects" time="0.001" classname="Should get correct build arguments for legacy-style projects">
+    </testcase>
+    <testcase name="BuildHelper: Build Helper tests Should get correct build arguments for SDK-style projects" time="0.001" classname="Should get correct build arguments for SDK-style projects">
+    </testcase>
+    <testcase name="BuildHelper: Build Helper tests Should get correct build folder" time="6.170" classname="Should get correct build folder">
+    </testcase>
+    <testcase name="BuildHelper: Build Helper tests Should have all required SystemDacpacs files for supported target platforms" time="0.001" classname="Should have all required SystemDacpacs files for supported target platforms">
+    </testcase>
+    <testcase name="BuildHelper: Build Helper tests Should have all required DLLs in build directory" time="0.005" classname="Should have all required DLLs in build directory">
+    </testcase>
+  </testsuite>
+  <testsuite name="Autorest tests" timestamp="2026-02-25T18:08:02" tests="4" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/autorestHelper.test.js" time="0.015" failures="0">
+    <testcase name="Autorest tests Should detect autorest" time="0.009" classname="Should detect autorest">
+    </testcase>
+    <testcase name="Autorest tests Should construct a correct autorest command for project generation" time="0.001" classname="Should construct a correct autorest command for project generation">
+    </testcase>
+    <testcase name="Autorest tests Should prompt user for action when autorest not found" time="0.001" classname="Should prompt user for action when autorest not found">
+    </testcase>
+  </testsuite>
+  <testsuite name="Sql Database Projects Task Provider" timestamp="2026-02-25T18:08:02" tests="4" file="/Users/runner/work/1/s/vscode-mssql/extensions/sql-database-projects/out/test/tasks/sqlDatabaseProjectTaskProvider.test.js" time="0.011" failures="0">
+    <testcase name="Sql Database Projects Task Provider Should create build and buildWithCodeAnalysis tasks for .sqlproj file with correct properties for SDK style project" time="0.003" classname="Should create build and buildWithCodeAnalysis tasks for .sqlproj file with correct properties for SDK style project">
+    </testcase>
+    <testcase name="Sql Database Projects Task Provider Should not create any tasks when no .sqlproj files are present in the workspace" time="0.001" classname="Should not create any tasks when no .sqlproj files are present in the workspace">
+    </testcase>
+    <testcase name="Sql Database Projects Task Provider Should create build and buildWithCodeAnalysis tasks for multiple .sqlproj files with correct properties" time="0.002" classname="Should create build and buildWithCodeAnalysis tasks for multiple .sqlproj files with correct properties">
+    </testcase>
+    <testcase name="Sql Database Projects Task Provider Should create tasks with correct build arguments for legacy-style project" time="0.001" classname="Should create tasks with correct build arguments for legacy-style project">
+    </testcase>
+  </testsuite>
+</testsuites>

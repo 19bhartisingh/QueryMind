@@ -1,0 +1,1943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>QueryMind</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+<style>
+  /* ── DESIGN TOKENS ── */
+  :root {
+    --bg:         #F7F6F3;
+    --surface:    #FFFFFF;
+    --surface-2:  #F0EDE8;
+    --border:     #E5E0D8;
+    --border-2:   #D6D0C6;
+    --ink:        #1A1714;
+    --ink-2:      #4A4640;
+    --ink-3:      #8A837A;
+    --accent:     #2563EB;
+    --accent-2:   #1D4ED8;
+    --accent-bg:  #EFF6FF;
+    --green:      #16A34A;
+    --green-bg:   #F0FDF4;
+    --amber:      #D97706;
+    --amber-bg:   #FFFBEB;
+    --red:        #DC2626;
+    --red-bg:     #FEF2F2;
+    --violet:     #7C3AED;
+    --violet-bg:  #F5F3FF;
+    --radius:     10px;
+    --radius-lg:  16px;
+    --sidebar-w:  264px;
+    --shadow-sm:  0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
+    --shadow:     0 4px 12px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.05);
+    --shadow-lg:  0 12px 32px rgba(0,0,0,.1), 0 4px 8px rgba(0,0,0,.06);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); font-size: 14px; line-height: 1.5; }
+  button { font-family: inherit; cursor: pointer; border: none; outline: none; }
+  input, textarea, select { font-family: inherit; outline: none; }
+  a { color: var(--accent); text-decoration: none; }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 99px; }
+
+  /* ── LAYOUT ── */
+  .app { display: flex; height: 100vh; overflow: hidden; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-w); flex-shrink: 0;
+    background: var(--surface); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .sidebar-header {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo { display: flex; align-items: center; gap: 9px; margin-bottom: 2px; }
+  .logo-mark {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .logo-mark svg { width: 16px; height: 16px; }
+  .logo-name { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--ink); letter-spacing: -.3px; }
+  .logo-sub { font-size: 11px; color: var(--ink-3); margin-left: 41px; font-weight: 400; letter-spacing: .2px; }
+  .sidebar-body { flex: 1; overflow-y: auto; padding: 12px 12px; display: flex; flex-direction: column; gap: 4px; }
+  .sidebar-section-label {
+    font-size: 10px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase;
+    color: var(--ink-3); padding: 8px 8px 4px; margin-top: 4px;
+  }
+  .sidebar-nav-btn {
+    display: flex; align-items: center; gap: 9px; padding: 8px 10px;
+    border-radius: var(--radius); width: 100%; background: none;
+    color: var(--ink-2); font-size: 13.5px; font-weight: 500;
+    transition: background .15s, color .15s; text-align: left;
+  }
+  .sidebar-nav-btn:hover { background: var(--surface-2); color: var(--ink); }
+  .sidebar-nav-btn.active { background: var(--accent-bg); color: var(--accent); }
+  .sidebar-nav-btn svg { width: 15px; height: 15px; flex-shrink: 0; opacity: .7; }
+  .sidebar-nav-btn.active svg { opacity: 1; }
+
+  .select-wrap { position: relative; }
+  .select-wrap select {
+    width: 100%; appearance: none; background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 8px 32px 8px 10px; font-size: 13px; color: var(--ink);
+    cursor: pointer; transition: border-color .15s;
+  }
+  .select-wrap select:hover { border-color: var(--border-2); }
+  .select-wrap select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+  .select-wrap::after {
+    content: ''; position: absolute; right: 10px; top: 50%;
+    transform: translateY(-50%); pointer-events: none;
+    border: 4px solid transparent; border-top-color: var(--ink-3);
+    margin-top: 2px;
+  }
+
+  .api-key-wrap { display: flex; gap: 6px; }
+  .api-key-input {
+    flex: 1; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 7px 10px; font-size: 12px; color: var(--ink);
+    background: var(--surface); transition: border-color .15s;
+  }
+  .api-key-input:focus { border-color: var(--accent); }
+  .api-key-input::placeholder { color: var(--ink-3); }
+  .btn-sm {
+    padding: 7px 10px; border-radius: var(--radius); font-size: 12px; font-weight: 500;
+    background: var(--accent); color: #fff; transition: background .15s; white-space: nowrap;
+  }
+  .btn-sm:hover { background: var(--accent-2); }
+  .btn-ghost {
+    background: none; border: 1px solid var(--border);
+    color: var(--ink-2); transition: background .15s, border-color .15s;
+  }
+  .btn-ghost:hover { background: var(--surface-2); border-color: var(--border-2); }
+
+  .schema-tree { display: flex; flex-direction: column; gap: 2px; }
+  .schema-table-header {
+    display: flex; align-items: center; gap: 6px; padding: 6px 8px;
+    border-radius: 8px; cursor: pointer; color: var(--ink-2); font-size: 12.5px; font-weight: 600;
+    transition: background .15s;
+  }
+  .schema-table-header:hover { background: var(--surface-2); }
+  .schema-table-header .tbl-icon { font-size: 11px; }
+  .schema-table-cols { display: none; padding: 2px 0 4px 24px; }
+  .schema-table-cols.open { display: block; }
+  .schema-col-row { display: flex; align-items: baseline; gap: 6px; padding: 2px 0; font-size: 11.5px; }
+  .schema-col-name { color: var(--ink-2); font-family: 'DM Mono', monospace; font-size: 11px; }
+  .schema-col-type { color: var(--ink-3); font-size: 10.5px; }
+  .schema-col-badge {
+    font-size: 9px; font-weight: 600; letter-spacing: .4px;
+    padding: 1px 4px; border-radius: 4px;
+    background: var(--accent-bg); color: var(--accent);
+  }
+  .schema-col-badge.fk { background: var(--violet-bg); color: var(--violet); }
+
+  /* ── MAIN ── */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ── TOP NAV ── */
+  .topnav {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 24px; display: flex; align-items: center; gap: 0;
+    height: 48px; flex-shrink: 0;
+  }
+  .tab-btn {
+    display: flex; align-items: center; gap: 6px; padding: 0 16px; height: 48px;
+    font-size: 13px; font-weight: 500; color: var(--ink-3); background: none;
+    border-bottom: 2px solid transparent; transition: color .15s, border-color .15s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--ink); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-btn svg { width: 14px; height: 14px; }
+
+  .topnav-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 99px;
+  }
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-amber { background: var(--amber-bg); color: var(--amber); }
+  .badge-red   { background: var(--red-bg); color: var(--red); }
+  .badge-grey  { background: var(--surface-2); color: var(--ink-3); }
+  .badge-blue  { background: var(--accent-bg); color: var(--accent); }
+  .badge-violet{ background: var(--violet-bg); color: var(--violet); }
+
+  /* ── PAGE PANELS ── */
+  .page { flex: 1; overflow: hidden; display: none; flex-direction: column; }
+  .page.active { display: flex; }
+
+  /* ── QUERY PAGE ── */
+  .query-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+  .convo-area { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+
+  .msg-bubble {
+    display: flex; flex-direction: column; gap: 4px; animation: fadeSlide .3s ease;
+  }
+  @keyframes fadeSlide { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  .msg-label { font-size: 10.5px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--ink-3); }
+  .msg-user .msg-label { color: var(--accent); }
+  .msg-user .msg-content {
+    background: var(--accent); color: #fff; border-radius: 12px 12px 4px 12px;
+    padding: 10px 14px; font-size: 14px; font-weight: 500; align-self: flex-start;
+  }
+  .msg-ai .msg-content { background: var(--surface); border: 1px solid var(--border); border-radius: 4px 12px 12px 12px; padding: 14px; }
+
+  .result-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  .result-card-header {
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .result-card-title { font-size: 13px; font-weight: 600; color: var(--ink); flex: 1; }
+  .result-card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+  .result-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); padding: 0 16px; }
+  .result-tab {
+    padding: 8px 14px; font-size: 12.5px; font-weight: 500; color: var(--ink-3); background: none;
+    border-bottom: 2px solid transparent; transition: color .15s, border-color .15s;
+  }
+  .result-tab:hover { color: var(--ink); }
+  .result-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .result-panel { display: none; padding: 16px; }
+  .result-panel.active { display: block; }
+
+  /* Data table */
+  .data-table-wrap { overflow: auto; max-height: 380px; border-radius: 8px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  thead { position: sticky; top: 0; z-index: 1; }
+  thead th {
+    background: var(--surface-2); padding: 9px 12px; text-align: left;
+    font-weight: 600; font-size: 11px; letter-spacing: .3px;
+    color: var(--ink-2); border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  tbody tr { transition: background .1s; }
+  tbody tr:hover { background: var(--bg); }
+  tbody td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--ink-2); font-size: 12.5px; }
+  tbody tr:last-child td { border-bottom: none; }
+  .null-cell { color: var(--ink-3); font-style: italic; font-size: 11px; }
+
+  /* SQL block */
+  .sql-block {
+    background: #1E293B; color: #94A3B8; border-radius: 10px;
+    padding: 14px 16px; font-family: 'DM Mono', monospace; font-size: 12px;
+    line-height: 1.65; overflow-x: auto; position: relative;
+  }
+  .sql-keyword { color: #38BDF8; font-weight: 600; }
+  .sql-string  { color: #86EFAC; }
+  .sql-number  { color: #FCA5A5; }
+  .sql-comment { color: #64748B; font-style: italic; }
+  .copy-sql-btn {
+    position: absolute; top: 10px; right: 10px;
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+    color: #94A3B8; font-size: 11px; padding: 4px 8px; border-radius: 6px;
+    cursor: pointer; transition: background .15s;
+  }
+  .copy-sql-btn:hover { background: rgba(255,255,255,.18); }
+
+  /* Chart */
+  .echart-wrap { width: 100%; height: 320px; }
+
+  /* Steps explainer */
+  .steps-list { display: flex; flex-direction: column; gap: 10px; }
+  .step-item {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 12px; background: var(--bg); border-radius: 10px;
+  }
+  .step-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+  }
+  .step-text { font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+
+  /* Anomaly */
+  .anomaly-alert {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 12px 14px; border-radius: 10px;
+    background: var(--amber-bg); border: 1px solid #FDE68A; margin-bottom: 8px;
+  }
+  .anomaly-icon { font-size: 16px; flex-shrink: 0; }
+  .anomaly-text { font-size: 12.5px; color: var(--amber); line-height: 1.5; }
+
+  /* Pivot table */
+  .pivot-wrapper { overflow: auto; max-height: 360px; }
+  .pivot-table { border-collapse: collapse; font-size: 12px; }
+  .pivot-table th, .pivot-table td {
+    border: 1px solid var(--border); padding: 7px 12px;
+  }
+  .pivot-table th { background: var(--surface-2); font-weight: 600; color: var(--ink-2); }
+  .pivot-controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .pivot-select {
+    padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px;
+    font-size: 12px; background: var(--surface); color: var(--ink);
+  }
+
+  /* Query input bar */
+  .query-bar {
+    border-top: 1px solid var(--border); background: var(--surface); padding: 14px 24px;
+  }
+  .query-input-wrap {
+    display: flex; gap: 8px; align-items: flex-end;
+    background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: 12px; padding: 10px 12px;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .query-input-wrap:focus-within {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+  }
+  .query-textarea {
+    flex: 1; background: none; border: none; resize: none;
+    font-size: 14px; color: var(--ink); max-height: 120px; min-height: 24px;
+    line-height: 1.5; padding: 0;
+  }
+  .query-textarea::placeholder { color: var(--ink-3); }
+  .query-actions { display: flex; gap: 6px; align-items: center; }
+  .icon-btn {
+    width: 34px; height: 34px; border-radius: 8px; display: flex;
+    align-items: center; justify-content: center;
+    background: none; color: var(--ink-3);
+    transition: background .15s, color .15s; flex-shrink: 0;
+  }
+  .icon-btn:hover { background: var(--surface-2); color: var(--ink); }
+  .icon-btn svg { width: 16px; height: 16px; }
+  .icon-btn.voice-active { background: #FEE2E2; color: var(--red); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.6; } }
+  .send-btn {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s, transform .1s; flex-shrink: 0;
+  }
+  .send-btn:hover { background: var(--accent-2); transform: scale(1.04); }
+  .send-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+  .send-btn svg { width: 15px; height: 15px; }
+
+  .query-hints { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .hint-chip {
+    font-size: 11.5px; color: var(--ink-3); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 99px; padding: 4px 10px;
+    cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .hint-chip:hover { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+
+  /* ── DASHBOARD PAGE ── */
+  .page-inner { flex: 1; overflow-y: auto; padding: 24px; }
+  .page-title { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--ink); margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--ink-3); margin-bottom: 20px; }
+
+  .goal-input-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 20px; margin-bottom: 24px;
+  }
+  .goal-input-row { display: flex; gap: 10px; }
+  .goal-input {
+    flex: 1; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 10px 14px; font-size: 14px; color: var(--ink);
+    background: var(--bg); transition: border-color .15s;
+  }
+  .goal-input:focus { border-color: var(--accent); }
+  .goal-input::placeholder { color: var(--ink-3); }
+  .btn-primary {
+    padding: 10px 20px; border-radius: var(--radius); font-size: 13.5px; font-weight: 600;
+    background: var(--accent); color: #fff; transition: background .15s, transform .1s; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-2); transform: scale(1.02); }
+  .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+  .dashboard-goal-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .goal-chip {
+    font-size: 12px; padding: 6px 12px; border-radius: 99px;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--ink-2); cursor: pointer; transition: all .15s;
+  }
+  .goal-chip:hover { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+
+  /* ── DASHBOARD HERO BANNER ── */
+  .dash-hero {
+    border-radius: var(--radius-lg); padding: 28px 32px; margin-bottom: 24px;
+    position: relative; overflow: hidden; color: #fff;
+  }
+  .dash-hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 80% 20%, rgba(255,255,255,.15) 0%, transparent 60%);
+  }
+  .dash-hero-label { font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; opacity: .7; margin-bottom: 6px; }
+  .dash-hero-title { font-family: 'DM Serif Display', serif; font-size: 28px; font-weight: 400; margin-bottom: 6px; line-height: 1.2; }
+  .dash-hero-sub { font-size: 13.5px; opacity: .8; max-width: 600px; line-height: 1.55; }
+  .dash-hero-meta { display: flex; gap: 16px; margin-top: 16px; flex-wrap: wrap; }
+  .dash-hero-stat { display: flex; flex-direction: column; gap: 2px; }
+  .dash-hero-stat-val { font-size: 16px; font-weight: 700; }
+  .dash-hero-stat-lbl { font-size: 10px; opacity: .65; text-transform: uppercase; letter-spacing: .6px; }
+
+  /* Dashboard hero themes */
+  .dash-theme-blue   { background: linear-gradient(135deg, #1D4ED8 0%, #2563EB 50%, #0EA5E9 100%); }
+  .dash-theme-teal   { background: linear-gradient(135deg, #0F766E 0%, #0D9488 50%, #06B6D4 100%); }
+  .dash-theme-violet { background: linear-gradient(135deg, #5B21B6 0%, #7C3AED 50%, #A855F7 100%); }
+  .dash-theme-amber  { background: linear-gradient(135deg, #92400E 0%, #D97706 50%, #F59E0B 100%); }
+  .dash-theme-rose   { background: linear-gradient(135deg, #9F1239 0%, #E11D48 50%, #FB7185 100%); }
+  .dash-theme-emerald{ background: linear-gradient(135deg, #065F46 0%, #059669 50%, #34D399 100%); }
+
+  /* ── KPI CARDS ── */
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .kpi-card {
+    background: var(--surface); border-radius: var(--radius-lg);
+    padding: 20px 22px; position: relative; overflow: hidden;
+    box-shadow: var(--shadow-sm); border: 1px solid var(--border);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .kpi-card::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+  .kpi-blue::after   { background: linear-gradient(90deg, #2563EB, #0EA5E9); }
+  .kpi-teal::after   { background: linear-gradient(90deg, #0D9488, #06B6D4); }
+  .kpi-violet::after { background: linear-gradient(90deg, #7C3AED, #A855F7); }
+  .kpi-amber::after  { background: linear-gradient(90deg, #D97706, #F59E0B); }
+  .kpi-rose::after   { background: linear-gradient(90deg, #E11D48, #FB7185); }
+  .kpi-emerald::after{ background: linear-gradient(90deg, #059669, #34D399); }
+  .kpi-orange::after { background: linear-gradient(90deg, #EA580C, #FB923C); }
+  .kpi-cyan::after   { background: linear-gradient(90deg, #0891B2, #22D3EE); }
+  .kpi-indigo::after { background: linear-gradient(90deg, #4338CA, #818CF8); }
+  .kpi-pink::after   { background: linear-gradient(90deg, #DB2777, #F9A8D4); }
+
+  .kpi-icon { font-size: 22px; margin-bottom: 12px; display: block; }
+  .kpi-value {
+    font-family: 'DM Serif Display', serif; font-size: 32px; line-height: 1;
+    color: var(--ink); margin-bottom: 4px; letter-spacing: -.5px;
+  }
+  .kpi-label { font-size: 12px; color: var(--ink-3); font-weight: 500; margin-bottom: 8px; }
+  .kpi-insight { font-size: 11px; color: var(--ink-3); line-height: 1.45; }
+  .kpi-bg-icon {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    font-size: 52px; opacity: .06; pointer-events: none;
+  }
+
+  /* ── DASHBOARD GRID ── */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .dash-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    animation: fadeSlide .4s ease both;
+    transition: box-shadow .2s;
+  }
+  .dash-panel:hover { box-shadow: var(--shadow); }
+  .dash-panel.size-full { grid-column: 1 / -1; }
+  .dash-panel-accent { height: 4px; width: 100%; }
+
+  /* Panel accent colors */
+  .accent-blue    { background: linear-gradient(90deg, #2563EB, #0EA5E9); }
+  .accent-teal    { background: linear-gradient(90deg, #0D9488, #06B6D4); }
+  .accent-violet  { background: linear-gradient(90deg, #7C3AED, #A855F7); }
+  .accent-amber   { background: linear-gradient(90deg, #D97706, #F59E0B); }
+  .accent-rose    { background: linear-gradient(90deg, #E11D48, #FB7185); }
+  .accent-emerald { background: linear-gradient(90deg, #059669, #34D399); }
+  .accent-orange  { background: linear-gradient(90deg, #EA580C, #FB923C); }
+  .accent-cyan    { background: linear-gradient(90deg, #0891B2, #22D3EE); }
+  .accent-indigo  { background: linear-gradient(90deg, #4338CA, #818CF8); }
+  .accent-pink    { background: linear-gradient(90deg, #DB2777, #F9A8D4); }
+
+  .dash-panel-header {
+    padding: 14px 18px 10px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+  }
+  .dash-panel-title { font-size: 13.5px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
+  .dash-panel-insight { font-size: 11.5px; color: var(--ink-3); line-height: 1.45; }
+  .dash-panel-rows { font-size: 10px; font-weight: 600; color: var(--ink-3); white-space: nowrap; margin-top: 1px; }
+  .dash-panel-body { padding: 14px; }
+  .dash-echart { width: 100%; height: 280px; }
+  .dash-echart.tall { height: 320px; }
+
+  /* Dashboard table style */
+  .dash-table-wrap { overflow: auto; max-height: 280px; border-radius: 8px; border: 1px solid var(--border); }
+  .dash-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .dash-table thead th {
+    background: var(--surface-2); padding: 8px 12px; text-align: left;
+    font-weight: 600; font-size: 10.5px; letter-spacing: .3px; color: var(--ink-2);
+    border-bottom: 1px solid var(--border); white-space: nowrap; position: sticky; top: 0;
+  }
+  .dash-table tbody tr:hover { background: var(--bg); }
+  .dash-table tbody td { padding: 7px 12px; border-bottom: 1px solid var(--border); color: var(--ink-2); }
+  .dash-table tbody tr:last-child td { border-bottom: none; }
+
+  /* ── PROFILE PAGE ── */
+  .profile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+  .profile-table-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;
+  }
+  .profile-table-header {
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface-2);
+  }
+  .profile-table-name { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .profile-table-rows { font-size: 11px; color: var(--ink-3); margin-left: auto; }
+  .profile-col-list { padding: 8px 0; }
+  .profile-col-item { padding: 8px 16px; border-bottom: 1px solid var(--border); }
+  .profile-col-item:last-child { border-bottom: none; }
+  .profile-col-name { font-family: 'DM Mono', monospace; font-size: 11.5px; color: var(--ink); font-weight: 600; margin-bottom: 5px; }
+  .profile-col-stats { display: flex; gap: 12px; flex-wrap: wrap; }
+  .profile-stat { display: flex; flex-direction: column; gap: 1px; }
+  .profile-stat-label { font-size: 9.5px; text-transform: uppercase; letter-spacing: .5px; color: var(--ink-3); font-weight: 600; }
+  .profile-stat-value { font-size: 12px; color: var(--ink-2); font-weight: 500; }
+  .null-bar-wrap { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+  .null-bar { height: 4px; border-radius: 99px; background: var(--border); flex: 1; }
+  .null-bar-fill { height: 100%; border-radius: 99px; background: var(--green); transition: width .5s; }
+  .null-bar-fill.warn { background: var(--amber); }
+  .null-bar-fill.bad  { background: var(--red); }
+  .null-bar-label { font-size: 10px; color: var(--ink-3); white-space: nowrap; }
+  .top-values { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+  .top-val-chip {
+    font-size: 10px; padding: 2px 6px; border-radius: 4px;
+    background: var(--surface-2); color: var(--ink-3); max-width: 100px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  /* ── HISTORY PAGE ── */
+  .history-list { display: flex; flex-direction: column; gap: 8px; }
+  .history-item {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+    padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start;
+    transition: border-color .15s; cursor: pointer;
+  }
+  .history-item:hover { border-color: var(--border-2); }
+  .hist-icon {
+    width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .hist-icon.ok  { background: var(--green-bg); }
+  .hist-icon.err { background: var(--red-bg); }
+  .hist-body { flex: 1; min-width: 0; }
+  .hist-question { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hist-meta { display: flex; gap: 8px; flex-wrap: wrap; font-size: 11px; color: var(--ink-3); }
+  .hist-sql { font-family: 'DM Mono', monospace; font-size: 10.5px; color: var(--ink-3); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hist-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .icon-btn-xs {
+    width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+    background: none; color: var(--ink-3); transition: background .15s, color .15s;
+  }
+  .icon-btn-xs:hover { background: var(--surface-2); color: var(--ink); }
+  .icon-btn-xs svg { width: 13px; height: 13px; }
+
+  /* ── SHARED COMPONENTS ── */
+  .empty-state { text-align: center; padding: 48px 24px; }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-title { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--ink); margin-bottom: 6px; }
+  .empty-sub { font-size: 13px; color: var(--ink-3); max-width: 320px; margin: 0 auto; }
+
+  .loading-dots { display: flex; gap: 5px; align-items: center; padding: 8px 0; }
+  .loading-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: dotBounce 1.2s infinite; }
+  .loading-dot:nth-child(2) { animation-delay: .2s; }
+  .loading-dot:nth-child(3) { animation-delay: .4s; }
+  @keyframes dotBounce { 0%,80%,100% { transform: scale(.8); opacity:.5; } 40% { transform: scale(1.1); opacity:1; } }
+
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 999;
+    background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 10px;
+    font-size: 13px; font-weight: 500; box-shadow: var(--shadow-lg);
+    animation: toastIn .25s ease; display: flex; align-items: center; gap: 8px;
+  }
+  .toast.hide { animation: toastOut .25s ease forwards; }
+  @keyframes toastIn  { from { transform: translateY(12px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+  @keyframes toastOut { from { opacity:1; } to { opacity:0; transform: translateY(6px); } }
+
+  .share-bar {
+    display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+    background: var(--surface-2); border-radius: 10px; border: 1px solid var(--border);
+    margin-top: 10px;
+  }
+  .share-link { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .confidence-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .confidence-bar { height: 5px; border-radius: 99px; background: var(--border); width: 60px; }
+  .confidence-bar-fill { height: 100%; border-radius: 99px; background: var(--green); transition: width .5s; }
+  .confidence-bar-fill.med { background: var(--amber); }
+  .confidence-bar-fill.low { background: var(--red); }
+
+  .info-box {
+    padding: 11px 14px; border-radius: 10px; font-size: 12.5px; color: var(--ink-2); line-height: 1.55;
+    background: var(--accent-bg); border-left: 3px solid var(--accent);
+  }
+
+  /* ── PROVIDER STATUS ── */
+  .provider-pill {
+    display: flex; align-items: center; gap: 5px; font-size: 11px; padding: 4px 9px;
+    border-radius: 99px; border: 1px solid var(--border); background: var(--surface);
+    color: var(--ink-3); font-weight: 500;
+  }
+  .provider-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border-2); }
+  .provider-dot.ok  { background: var(--green); }
+  .provider-dot.err { background: var(--red); }
+
+  /* Skeleton */
+  .skeleton {
+    background: linear-gradient(90deg, var(--border) 25%, var(--surface-2) 50%, var(--border) 75%);
+    background-size: 200% 100%; animation: shimmer 1.5s infinite;
+    border-radius: 6px;
+  }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  /* ── SCHEMA SUMMARY ── */
+  .schema-summary-badge {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600;
+    padding: 2px 7px; border-radius: 99px; background: var(--violet-bg); color: var(--violet);
+    cursor: pointer; transition: all .15s; margin-left: auto;
+  }
+  .schema-summary-badge:hover { background: var(--violet); color: #fff; }
+  .schema-summary-text { font-size: 11.5px; color: var(--ink-3); margin: 4px 0 2px; line-height: 1.5; padding: 0 8px; border-left: 2px solid var(--violet); }
+
+  /* ── UTILITIES ── */
+  .flex { display: flex; }
+  .gap-6 { gap: 6px; }
+  .gap-8 { gap: 8px; }
+  .gap-12 { gap: 12px; }
+  .mt-8 { margin-top: 8px; }
+  .mt-12 { margin-top: 12px; }
+  .mt-16 { margin-top: 16px; }
+  .ml-auto { margin-left: auto; }
+  .text-sm { font-size: 12px; }
+  .text-xs { font-size: 11px; }
+  .text-ink3 { color: var(--ink-3); }
+  .font-mono { font-family: 'DM Mono', monospace; }
+  .wrap { flex-wrap: wrap; }
+  .items-center { align-items: center; }
+  .w-full { width: 100%; }
+  .hidden { display: none !important; }
+  .divider { height: 1px; background: var(--border); margin: 8px 0; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"/></svg>
+        </div>
+        <span class="logo-name">QueryMind</span>
+      </div>
+      <div class="logo-sub">Natural Language → SQL</div>
+    </div>
+
+    <div class="sidebar-body">
+      <!-- Navigation -->
+      <div class="sidebar-section-label">Workspace</div>
+      <button class="sidebar-nav-btn active" onclick="switchTab('query')" id="nav-query">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Query Assistant
+      </button>
+      <button class="sidebar-nav-btn" onclick="switchTab('dashboard')" id="nav-dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Text to Dashboard
+      </button>
+      <button class="sidebar-nav-btn" onclick="switchTab('profile')" id="nav-profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Data Profiling
+      </button>
+      <button class="sidebar-nav-btn" onclick="switchTab('history')" id="nav-history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
+        Query History
+      </button>
+
+      <!-- Database -->
+      <div class="sidebar-section-label">Database</div>
+      <div style="padding:0 4px;">
+        <div class="select-wrap">
+          <select id="db-select" onchange="onDbChange()"></select>
+        </div>
+        <div style="margin-top:6px; display:flex; gap:6px;">
+          <label style="flex:1">
+            <input type="file" id="file-input" style="display:none" accept=".csv,.tsv,.xlsx,.xls,.json,.db,.sqlite,.parquet,.html" onchange="importFile()" />
+            <button class="btn-sm btn-ghost" style="width:100%" onclick="document.getElementById('file-input').click()">
+              ＋ Import File
+            </button>
+          </label>
+          <button class="btn-sm btn-ghost" id="profile-btn" onclick="profileCurrentDb()">Profile</button>
+        </div>
+      </div>
+
+      <!-- Schema -->
+      <div class="sidebar-section-label" style="display:flex;align-items:center;gap:4px;">
+        Schema
+        <button class="schema-summary-badge" onclick="summarizeSchema()" title="AI-summarize tables">✨ AI</button>
+      </div>
+      <div id="schema-tree" class="schema-tree" style="padding:0 4px;"></div>
+
+      <!-- AI Provider -->
+      <div class="sidebar-section-label">AI Provider</div>
+      <div style="padding:0 4px;display:flex;flex-direction:column;gap:6px;">
+        <div class="select-wrap">
+          <select id="provider-select" onchange="onProviderChange()">
+            <option value="gemini">Gemini (Google)</option>
+            <option value="openai">OpenAI GPT</option>
+            <option value="groq">Groq (LLaMA 3)</option>
+            <option value="ollama">Ollama (Local)</option>
+          </select>
+        </div>
+        <div class="api-key-wrap" id="api-key-wrap">
+          <input class="api-key-input" id="api-key-input" type="password" placeholder="API Key..." />
+          <button class="btn-sm" onclick="saveApiKey()">Save</button>
+        </div>
+        <div id="provider-status-wrap" style="display:flex;flex-direction:column;gap:4px;"></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN ═══ -->
+  <div class="main">
+
+    <!-- Top nav tabs -->
+    <nav class="topnav">
+      <button class="tab-btn active" onclick="switchTab('query')" id="tab-query">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Query
+      </button>
+      <button class="tab-btn" onclick="switchTab('dashboard')" id="tab-dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+      <button class="tab-btn" onclick="switchTab('profile')" id="tab-profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Profiling
+      </button>
+      <button class="tab-btn" onclick="switchTab('history')" id="tab-history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
+        History
+      </button>
+      <div class="topnav-right">
+        <span id="cache-badge" class="badge badge-grey hidden">⚡ Cached</span>
+        <div id="provider-pill" class="provider-pill">
+          <div class="provider-dot" id="provider-dot"></div>
+          <span id="provider-pill-label">Gemini</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ══ QUERY PAGE ══ -->
+    <div class="page active" id="page-query">
+      <div class="query-body">
+        <div class="convo-area" id="convo-area">
+          <div class="empty-state" id="empty-query">
+            <div class="empty-icon">🧠</div>
+            <div class="empty-title">Ask anything about your data</div>
+            <div class="empty-sub">Type a question in plain English and QueryMind will generate the SQL, run it, and visualize the results.</div>
+          </div>
+        </div>
+        <div class="query-bar">
+          <div class="query-input-wrap">
+            <textarea id="query-input" class="query-textarea" rows="1" placeholder="e.g. Show top 10 students by GPA in Computer Science..." onkeydown="handleKeydown(event)" oninput="autoResize(this)"></textarea>
+            <div class="query-actions">
+              <button class="icon-btn" id="voice-btn" onclick="toggleVoice()" title="Voice input">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              </button>
+              <button class="icon-btn" onclick="clearConvo()" title="Clear conversation">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6m4-6v6"/><path d="M9 6V4h6v2"/></svg>
+              </button>
+              <button class="send-btn" id="send-btn" onclick="sendQuery()" title="Send (Enter)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="query-hints" id="query-hints"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ DASHBOARD PAGE ══ -->
+    <div class="page" id="page-dashboard">
+      <div class="page-inner">
+        <div class="page-title">Text to Dashboard</div>
+        <div class="page-sub">Describe your analytical goal and QueryMind will generate a complete dashboard automatically.</div>
+        <div class="goal-input-card">
+          <div class="goal-input-row">
+            <input class="goal-input" id="goal-input" type="text" placeholder="e.g. Understand sales performance across categories and time..." />
+            <button class="btn-primary" id="gen-dash-btn" onclick="generateDashboard()">Generate Dashboard</button>
+          </div>
+          <div class="dashboard-goal-chips" id="goal-chips"></div>
+        </div>
+        <div id="dashboard-output"></div>
+      </div>
+    </div>
+
+    <!-- ══ PROFILE PAGE ══ -->
+    <div class="page" id="page-profile">
+      <div class="page-inner">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+          <div class="page-title" style="margin:0">Data Profiling</div>
+          <button class="btn-primary" onclick="profileCurrentDb()" style="margin-left:auto;">Refresh Profile</button>
+        </div>
+        <div class="page-sub">Auto-generated column statistics — nulls, uniqueness, distributions, and top values for every field.</div>
+        <div id="profile-output" class="profile-grid">
+          <div class="empty-state" style="grid-column:1/-1">
+            <div class="empty-icon">📊</div>
+            <div class="empty-title">No profile yet</div>
+            <div class="empty-sub">Select a database and click "Refresh Profile" or "Profile" in the sidebar.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ HISTORY PAGE ══ -->
+    <div class="page" id="page-history">
+      <div class="page-inner">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+          <div class="page-title" style="margin:0">Query History</div>
+          <button class="btn-sm btn-ghost" onclick="clearHistory()" style="margin-left:auto;">Clear All</button>
+        </div>
+        <div class="page-sub">Persistent query log — survives server restarts. Click any entry to re-run it.</div>
+        <div id="history-output" class="history-list mt-16">
+          <div class="empty-state">
+            <div class="empty-icon">📜</div>
+            <div class="empty-title">No history yet</div>
+            <div class="empty-sub">Queries you run will appear here, persisted across sessions.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════
+const state = {
+  db: '',
+  provider: 'gemini',
+  apiKey: '',
+  apiKeys: {},
+  convoMemory: [],        // last 5 {question, sql} for context
+  currentResult: null,    // last result for share
+  schemaSummaries: {},    // table → summary text
+  isLoading: false,
+  voiceActive: false,
+  recognition: null,
+};
+
+// ════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════
+async function init() {
+  // restore saved keys
+  try {
+    const saved = JSON.parse(localStorage.getItem('qm_api_keys') || '{}');
+    state.apiKeys = saved;
+    const prov = localStorage.getItem('qm_provider') || 'gemini';
+    document.getElementById('provider-select').value = prov;
+    state.provider = prov;
+    state.apiKey = saved[prov] || '';
+    document.getElementById('api-key-input').value = state.apiKey ? '••••••••' : '';
+    updateApiKeyVisibility();
+  } catch(e) {}
+
+  await loadDatabases();
+  await loadProviderStatus();
+  await loadHistory();
+  loadHints();
+}
+
+// ════════════════════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════════════════════
+function switchTab(name) {
+  ['query','dashboard','profile','history'].forEach(t => {
+    document.getElementById(`page-${t}`).classList.toggle('active', t === name);
+    document.getElementById(`tab-${t}`).classList.toggle('active', t === name);
+    document.getElementById(`nav-${t}`).classList.toggle('active', t === name);
+  });
+  if (name === 'history') loadHistory();
+}
+
+// ════════════════════════════════════════════════════════
+//  DATABASES
+// ════════════════════════════════════════════════════════
+async function loadDatabases() {
+  try {
+    const r = await fetch('/api/databases');
+    const d = await r.json();
+    const sel = document.getElementById('db-select');
+    sel.innerHTML = '';
+    (d.databases || []).forEach(db => {
+      const o = document.createElement('option');
+      o.value = db; o.textContent = db;
+      sel.appendChild(o);
+    });
+    state.db = sel.value;
+    await loadSchema();
+  } catch(e) { console.error(e); }
+}
+
+async function onDbChange() {
+  state.db = document.getElementById('db-select').value;
+  state.schemaSummaries = {};
+  await loadSchema();
+  loadHints();
+}
+
+async function loadSchema() {
+  if (!state.db) return;
+  try {
+    const r = await fetch(`/api/schema/${encodeURIComponent(state.db)}`);
+    const d = await r.json();
+    renderSchemaTree(d.schema || {});
+  } catch(e) {}
+}
+
+function renderSchemaTree(schema) {
+  const el = document.getElementById('schema-tree');
+  el.innerHTML = '';
+  Object.entries(schema).forEach(([tbl, tableData]) => {
+    // API returns {columns: [...], row_count: N}
+    const cols = Array.isArray(tableData) ? tableData : (tableData.columns || []);
+    const rowCount = tableData.row_count;
+    const wrap = document.createElement('div');
+    const header = document.createElement('div');
+    header.className = 'schema-table-header';
+    header.innerHTML = `<span class="tbl-icon">📋</span><span style="flex:1">${tbl}</span><span style="font-size:10px;color:var(--ink-3);font-weight:400">${rowCount ? rowCount.toLocaleString()+' rows' : cols.length+'c'}</span>`;
+    const colDiv = document.createElement('div');
+    colDiv.className = 'schema-table-cols';
+    // summary text if exists
+    if (state.schemaSummaries[tbl]) {
+      const sum = document.createElement('div');
+      sum.className = 'schema-summary-text';
+      sum.textContent = state.schemaSummaries[tbl];
+      colDiv.appendChild(sum);
+    }
+    cols.forEach(col => {
+      const row = document.createElement('div');
+      row.className = 'schema-col-row';
+      let badges = '';
+      if (col.pk) badges += `<span class="schema-col-badge">PK</span>`;
+      if (col.fk) badges += `<span class="schema-col-badge fk">FK</span>`;
+      row.innerHTML = `<span class="schema-col-name">${col.name}</span><span class="schema-col-type">${col.type}</span>${badges}`;
+      colDiv.appendChild(row);
+    });
+    header.onclick = () => colDiv.classList.toggle('open');
+    wrap.appendChild(header);
+    wrap.appendChild(colDiv);
+    el.appendChild(wrap);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  AI PROVIDER
+// ════════════════════════════════════════════════════════
+function onProviderChange() {
+  state.provider = document.getElementById('provider-select').value;
+  state.apiKey = state.apiKeys[state.provider] || '';
+  document.getElementById('api-key-input').value = state.apiKey ? '••••••••' : '';
+  localStorage.setItem('qm_provider', state.provider);
+  updateApiKeyVisibility();
+  updateProviderPill();
+}
+
+function updateApiKeyVisibility() {
+  const local = ['ollama','huggingface'].includes(state.provider);
+  document.getElementById('api-key-wrap').style.display = local ? 'none' : 'flex';
+}
+
+function saveApiKey() {
+  const val = document.getElementById('api-key-input').value;
+  if (!val || val === '••••••••') return;
+  state.apiKey = val;
+  state.apiKeys[state.provider] = val;
+  localStorage.setItem('qm_api_keys', JSON.stringify(state.apiKeys));
+  document.getElementById('api-key-input').value = '••••••••';
+  toast('✅ API key saved');
+}
+
+async function loadProviderStatus() {
+  try {
+    const r = await fetch('/api/providers');
+    const d = await r.json();
+    const wrap = document.getElementById('provider-status-wrap');
+    wrap.innerHTML = '';
+    Object.entries(d.providers || {}).forEach(([name, info]) => {
+      const ok = info.available;
+      const pill = document.createElement('div');
+      pill.className = 'provider-pill';
+      pill.innerHTML = `<div class="provider-dot ${ok?'ok':'err'}"></div><span>${name}</span><span style="margin-left:auto;font-size:10px">${ok?'Ready':'Not configured'}</span>`;
+      wrap.appendChild(pill);
+    });
+    updateProviderPill();
+  } catch(e) {}
+}
+
+function updateProviderPill() {
+  const label = { gemini:'Gemini', openai:'GPT', groq:'Groq', ollama:'Ollama' };
+  document.getElementById('provider-pill-label').textContent = label[state.provider] || state.provider;
+}
+
+// ════════════════════════════════════════════════════════
+//  QUERY
+// ════════════════════════════════════════════════════════
+function handleKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendQuery(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+async function sendQuery() {
+  const input = document.getElementById('query-input');
+  const question = input.value.trim();
+  if (!question || state.isLoading) return;
+
+  input.value = ''; input.style.height = 'auto';
+  document.getElementById('empty-query')?.remove();
+  document.getElementById('cache-badge').classList.add('hidden');
+
+  // User bubble
+  appendUserBubble(question);
+
+  // Loading bubble
+  const loadId = appendLoadingBubble();
+  state.isLoading = true;
+  document.getElementById('send-btn').disabled = true;
+
+  try {
+    const body = {
+      question, db_name: state.db,
+      provider: state.provider, api_key: state.apiKey,
+      conversation_history: state.convoMemory.slice(-5),
+    };
+    const r = await fetch('/api/query', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const d = await r.json();
+
+    removeLoadingBubble(loadId);
+    if (d.error) {
+      appendErrorBubble(d.error);
+    } else {
+      // Update convo memory
+      state.convoMemory.push({ question, sql: d.sql });
+      if (state.convoMemory.length > 5) state.convoMemory.shift();
+      state.currentResult = d;
+
+      if (d.from_cache) document.getElementById('cache-badge').classList.remove('hidden');
+      appendResultBubble(d, question);
+    }
+  } catch(e) {
+    removeLoadingBubble(loadId);
+    appendErrorBubble('Network error: ' + e.message);
+  } finally {
+    state.isLoading = false;
+    document.getElementById('send-btn').disabled = false;
+  }
+}
+
+function appendUserBubble(text) {
+  const area = document.getElementById('convo-area');
+  const div = document.createElement('div');
+  div.className = 'msg-bubble msg-user';
+  div.innerHTML = `<div class="msg-label">You</div><div class="msg-content">${escHtml(text)}</div>`;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function appendLoadingBubble() {
+  const area = document.getElementById('convo-area');
+  const id = 'load-' + Date.now();
+  const div = document.createElement('div');
+  div.className = 'msg-bubble msg-ai'; div.id = id;
+  div.innerHTML = `<div class="msg-label">QueryMind</div><div class="msg-content"><div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div></div>`;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+  return id;
+}
+
+function removeLoadingBubble(id) {
+  document.getElementById(id)?.remove();
+}
+
+function appendErrorBubble(msg) {
+  const area = document.getElementById('convo-area');
+  const div = document.createElement('div');
+  div.className = 'msg-bubble msg-ai';
+  div.innerHTML = `<div class="msg-label">QueryMind</div><div class="msg-content"><div style="color:var(--red);font-size:13px;">⚠️ ${escHtml(msg)}</div></div>`;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function appendResultBubble(d, question) {
+  const area = document.getElementById('convo-area');
+  const div = document.createElement('div');
+  div.className = 'msg-bubble msg-ai';
+
+  const uid = 'res-' + Date.now();
+  const conf = d.confidence || 0;
+  const confColor = conf >= .8 ? '' : conf >= .6 ? ' med' : ' low';
+  const rows = d.rows || []; const cols = d.columns || [];
+  const hasData = rows.length > 0;
+
+  let tabs = `<button class="result-tab active" onclick="switchResultTab('${uid}','sql',this)">SQL</button>`;
+  if (hasData) {
+    tabs += `<button class="result-tab" onclick="switchResultTab('${uid}','table',this)">Table</button>`;
+    if (d.chart && d.chart.type && d.chart.type !== 'table') {
+      tabs += `<button class="result-tab" onclick="switchResultTab('${uid}','chart',this)">Chart</button>`;
+    }
+    if (cols.length >= 2) {
+      tabs += `<button class="result-tab" onclick="switchResultTab('${uid}','pivot',this)">Pivot</button>`;
+    }
+  }
+  tabs += `<button class="result-tab" onclick="switchResultTab('${uid}','steps',this)">Explain</button>`;
+
+  // Anomaly alerts
+  let anomalyHtml = '';
+  if (d.anomalies && d.anomalies.length) {
+    anomalyHtml = d.anomalies.map(a => `<div class="anomaly-alert"><div class="anomaly-icon">⚠️</div><div class="anomaly-text">${escHtml(a)}</div></div>`).join('');
+  }
+
+  // Chart panel HTML (rendered after append)
+  const hasChart = hasData && d.chart && d.chart.type && d.chart.type !== 'table';
+
+  div.innerHTML = `
+  <div class="msg-label">QueryMind</div>
+  <div class="result-card">
+    <div class="result-card-header">
+      <div class="result-card-title">${escHtml(d.explanation || 'Query result')}</div>
+      <div class="result-card-meta">
+        ${hasData ? `<span class="badge badge-blue">${rows.length} rows</span>` : ''}
+        <div class="confidence-bar-wrap">
+          <div class="confidence-bar"><div class="confidence-bar-fill${confColor}" style="width:${Math.round(conf*100)}%"></div></div>
+          <span class="text-xs text-ink3">${Math.round(conf*100)}%</span>
+        </div>
+        ${d.from_cache ? `<span class="badge badge-green">⚡ Cached</span>` : ''}
+        <button class="badge badge-grey" onclick="shareResult('${uid}')">🔗 Share</button>
+      </div>
+    </div>
+    ${anomalyHtml}
+    <div class="result-tabs">${tabs}</div>
+    <div id="${uid}-sql" class="result-panel active">
+      ${renderSqlBlock(d.sql)}
+    </div>
+    ${hasData ? `<div id="${uid}-table" class="result-panel">${renderTable(cols, rows)}</div>` : ''}
+    ${hasChart ? `<div id="${uid}-chart" class="result-panel"><div class="echart-wrap" id="${uid}-echart"></div></div>` : ''}
+    ${cols.length >= 2 ? `<div id="${uid}-pivot" class="result-panel">${renderPivotControls(uid, cols, rows)}</div>` : ''}
+    <div id="${uid}-steps" class="result-panel">
+      <div class="text-sm text-ink3" style="margin-bottom:10px">Loading step-by-step explanation...</div>
+      <div id="${uid}-steps-content"></div>
+    </div>
+    <div id="${uid}-share" class="hidden" style="padding:0 16px 12px;"></div>
+  </div>`;
+
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+
+  // Store pivot data for this result
+  if (rows.length) { _pivotData[uid] = rows; }
+
+  // Render chart
+  if (hasChart) {
+    setTimeout(() => renderEChart(uid + '-echart', d.chart, rows, cols), 50);
+  }
+
+  // Pre-fetch steps
+  fetchSteps(d.sql, uid);
+}
+
+function switchResultTab(uid, tab, btn) {
+  const card = btn.closest('.result-card');
+  card.querySelectorAll('.result-tab').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.result-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const panel = document.getElementById(`${uid}-${tab}`);
+  if (panel) panel.classList.add('active');
+
+  // Resize chart if switching to it
+  if (tab === 'chart') {
+    const ch = echarts.getInstanceByDom(document.getElementById(uid + '-echart'));
+    ch?.resize();
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  SQL RENDERING
+// ════════════════════════════════════════════════════════
+function renderSqlBlock(sql) {
+  const highlighted = highlightSql(sql || '');
+  return `<div class="sql-block">${highlighted}<button class="copy-sql-btn" onclick="copySql(this,'${escAttr(sql)}')">Copy</button></div>`;
+}
+
+function highlightSql(sql) {
+  const keywords = /\b(SELECT|FROM|WHERE|JOIN|LEFT|RIGHT|INNER|OUTER|ON|GROUP\s+BY|ORDER\s+BY|HAVING|LIMIT|OFFSET|AS|AND|OR|NOT|IN|IS|NULL|DISTINCT|COUNT|SUM|AVG|MIN|MAX|CASE|WHEN|THEN|ELSE|END|WITH|UNION|ALL|EXISTS|LIKE|BETWEEN|STRFTIME|COALESCE|IFNULL|ROUND|CAST|DATE|TIME)\b/gi;
+  const strings = /('([^']*)')/g;
+  const numbers = /\b(\d+(\.\d+)?)\b/g;
+  return escHtml(sql)
+    .replace(keywords, m => `<span class="sql-keyword">${m}</span>`)
+    .replace(strings, m => `<span class="sql-string">${m}</span>`)
+    .replace(numbers, m => `<span class="sql-number">${m}</span>`);
+}
+
+function copySql(btn, sql) {
+  navigator.clipboard.writeText(sql).then(() => { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500); });
+}
+
+// ════════════════════════════════════════════════════════
+//  TABLE RENDERING
+// ════════════════════════════════════════════════════════
+function renderTable(cols, rows) {
+  if (!rows.length) return '<div class="text-sm text-ink3" style="padding:12px">No results returned.</div>';
+  const maxRows = 100;
+  const ths = cols.map(c => `<th>${escHtml(c)}</th>`).join('');
+  const trs = rows.slice(0, maxRows).map(row =>
+    `<tr>${cols.map(c => {
+      const v = row[c];
+      if (v === null || v === undefined) return `<td class="null-cell">null</td>`;
+      return `<td>${escHtml(String(v))}</td>`;
+    }).join('')}</tr>`
+  ).join('');
+  const note = rows.length > maxRows ? `<div class="text-xs text-ink3" style="padding:8px 12px">Showing ${maxRows} of ${rows.length} rows</div>` : '';
+  return `<div class="data-table-wrap"><table><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table></div>${note}`;
+}
+
+// ════════════════════════════════════════════════════════
+//  RICH COLOR PALETTES
+// ════════════════════════════════════════════════════════
+const THEME_PALETTES = {
+  blue:    ['#2563EB','#0EA5E9','#38BDF8','#7DD3FC','#BAE6FD','#60A5FA','#93C5FD'],
+  teal:    ['#0D9488','#06B6D4','#14B8A6','#22D3EE','#67E8F9','#2DD4BF','#5EEAD4'],
+  violet:  ['#7C3AED','#A855F7','#8B5CF6','#C084FC','#D946EF','#E879F9','#6366F1'],
+  amber:   ['#D97706','#F59E0B','#FBBF24','#FCD34D','#EA580C','#FB923C','#FED7AA'],
+  rose:    ['#E11D48','#FB7185','#F43F5E','#FDA4AF','#DB2777','#F9A8D4','#EC4899'],
+  emerald: ['#059669','#34D399','#10B981','#6EE7B7','#047857','#065F46','#A7F3D0'],
+  orange:  ['#EA580C','#FB923C','#F97316','#FDBA74','#C2410C','#9A3412','#FED7AA'],
+  cyan:    ['#0891B2','#22D3EE','#06B6D4','#67E9F9','#0E7490','#155E75','#A5F3FC'],
+  indigo:  ['#4338CA','#818CF8','#6366F1','#A5B4FC','#3730A3','#312E81','#C7D2FE'],
+  pink:    ['#DB2777','#F9A8D4','#EC4899','#FBCFE8','#BE185D','#9D174D','#FCE7F3'],
+};
+
+const CHART_COLORS = { // legacy compat
+  teal:['#0D9488','#99F6E4'], blue:['#2563EB','#BFDBFE'],
+  purple:['#7C3AED','#DDD6FE'], orange:['#EA580C','#FED7AA'],
+  green:['#16A34A','#BBF7D0'], red:['#DC2626','#FCA5A5'],
+  pink:['#DB2777','#FBCFE8'],
+};
+
+// ════════════════════════════════════════════════════════
+//  ECHART — RICH RENDERER
+// ════════════════════════════════════════════════════════
+function renderEChart(elId, chart, rows, cols, isDash = false) {
+  const el = document.getElementById(elId);
+  if (!el || !rows.length) return;
+  const existing = echarts.getInstanceByDom(el);
+  if (existing) existing.dispose();
+  const instance = echarts.init(el, null, { renderer: 'canvas' });
+
+  const type = chart.type || 'bar';
+  const xCol = chart.x || cols[0];
+  const yCol = chart.y || cols[1] || cols[0];
+  const theme = chart.color_theme || chart.color || 'blue';
+  const palette = THEME_PALETTES[theme] || THEME_PALETTES.blue;
+  const primary = palette[0];
+  const secondary = palette[1];
+  const title = chart.title || '';
+
+  const xData = rows.map(r => String(r[xCol] ?? ''));
+  const yData = rows.map(r => parseFloat(r[yCol]) || 0);
+
+  const baseTextStyle = { fontFamily: 'DM Sans, sans-serif', fontSize: 11, color: '#6B7280' };
+  const baseGrid = { top: title ? 48 : 28, right: 24, bottom: 56, left: 64 };
+  const baseSplitLine = { lineStyle: { color: '#F3F4F6', width: 1 } };
+  const baseAxisLine = { lineStyle: { color: '#E5E7EB' } };
+  const baseTooltip = {
+    backgroundColor: '#1E293B', borderColor: 'transparent',
+    textStyle: { color: '#F8FAFC', fontSize: 12, fontFamily: 'DM Sans, sans-serif' },
+    borderRadius: 8, padding: [8, 12],
+    extraCssText: 'box-shadow: 0 8px 24px rgba(0,0,0,.2)',
+  };
+  const baseTitle = title ? {
+    text: title,
+    textStyle: { fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: '600', color: '#374151' },
+    top: 8, left: 12,
+  } : undefined;
+
+  let option = {};
+
+  // ── PIE / DONUT ──
+  if (type === 'pie' || type === 'donut') {
+    const pieData = rows.slice(0,12).map((r, i) => ({
+      name: String(r[xCol] ?? ''),
+      value: parseFloat(r[yCol]) || 0,
+      itemStyle: { color: palette[i % palette.length] },
+    }));
+    const isDonut = type === 'donut';
+    option = {
+      title: baseTitle,
+      tooltip: { ...baseTooltip, trigger: 'item', formatter: p => `<b>${p.name}</b><br/>${p.marker} ${Number(p.value).toLocaleString()} (${p.percent}%)` },
+      legend: { bottom: 4, type: 'scroll', textStyle: baseTextStyle, icon: 'circle', itemWidth: 8, itemHeight: 8 },
+      series: [{
+        type: 'pie',
+        radius: isDonut ? ['42%', '70%'] : ['0%', '70%'],
+        center: ['50%', '45%'],
+        data: pieData,
+        label: { show: !isDonut, formatter: '{b}\n{d}%', fontSize: 10, lineHeight: 14 },
+        labelLine: { show: !isDonut, length: 8, length2: 6 },
+        emphasis: { scaleSize: 6, itemStyle: { shadowBlur: 16, shadowColor: 'rgba(0,0,0,.2)' } },
+        itemStyle: { borderRadius: isDonut ? 4 : 2, borderWidth: 2, borderColor: '#fff' },
+        animationType: 'scale', animationEasing: 'elasticOut',
+      }],
+    };
+    if (isDonut && pieData.length) {
+      option.graphic = [{
+        type: 'text', left: 'center', top: '42%',
+        style: { text: 'Total\n' + pieData.reduce((a,b) => a + b.value, 0).toLocaleString(),
+          textAlign: 'center', fill: '#374151', fontSize: 13, fontWeight: '600', fontFamily: 'DM Sans',
+          lineHeight: 20 },
+      }];
+    }
+  }
+  // ── FUNNEL ──
+  else if (type === 'funnel') {
+    const funnelData = rows.slice(0,8).map((r, i) => ({
+      name: String(r[xCol] ?? ''),
+      value: parseFloat(r[yCol]) || 0,
+      itemStyle: { color: palette[i % palette.length] },
+    }));
+    option = {
+      title: baseTitle,
+      tooltip: { ...baseTooltip, trigger: 'item', formatter: p => `<b>${p.name}</b>: ${Number(p.value).toLocaleString()}` },
+      series: [{
+        type: 'funnel', data: funnelData,
+        left: '10%', width: '80%', top: title ? 48 : 20, bottom: 20,
+        label: { show: true, position: 'inside', color: '#fff', fontSize: 11, fontFamily: 'DM Sans' },
+        itemStyle: { borderWidth: 2, borderColor: '#fff' },
+        emphasis: { label: { fontSize: 13 } },
+        animationType: 'expansion',
+      }],
+    };
+  }
+  // ── SCATTER ──
+  else if (type === 'scatter') {
+    const scatterData = rows.map(r => [parseFloat(r[xCol]) || 0, parseFloat(r[yCol]) || 0]);
+    option = {
+      title: baseTitle,
+      grid: baseGrid, tooltip: { ...baseTooltip, trigger: 'item', formatter: p => `${p.marker} (${p.value[0]}, ${p.value[1]})` },
+      xAxis: { type: 'value', name: xCol, nameTextStyle: { ...baseTextStyle, padding: [0,0,-4,0] }, axisLabel: { ...baseTextStyle }, splitLine: baseSplitLine, axisLine: baseAxisLine },
+      yAxis: { type: 'value', name: yCol, nameTextStyle: baseTextStyle, axisLabel: { ...baseTextStyle }, splitLine: baseSplitLine, axisLine: baseAxisLine },
+      series: [{
+        type: 'scatter', data: scatterData, symbolSize: 9,
+        itemStyle: { color: primary, opacity: .75, borderColor: '#fff', borderWidth: 1.5 },
+        emphasis: { itemStyle: { shadowBlur: 12, shadowColor: primary + '88' } },
+      }],
+    };
+  }
+  // ── HORIZONTAL BAR ──
+  else if (type === 'bar_h') {
+    const sorted = [...rows].sort((a,b) => (parseFloat(b[yCol])||0) - (parseFloat(a[yCol])||0)).slice(0,15);
+    const hxData = sorted.map(r => String(r[xCol] ?? ''));
+    const hyData = sorted.map((r, i) => ({
+      value: parseFloat(r[yCol]) || 0,
+      itemStyle: { color: { type:'linear', x:0,y:0,x2:1,y2:0, colorStops:[{offset:0,color:palette[i%2===0?0:1]},{offset:1,color:palette[Math.min(i%3+1,palette.length-1)]}] }, borderRadius: [0,4,4,0] },
+    }));
+    option = {
+      title: baseTitle,
+      grid: { top: title?48:28, right: 40, bottom: 16, left: 8 },
+      tooltip: { ...baseTooltip, trigger: 'axis', axisPointer:{type:'none'}, formatter: p => `${p[0].name}<br/>${p[0].marker} <b>${Number(p[0].value).toLocaleString()}</b>` },
+      xAxis: { type: 'value', axisLabel: { ...baseTextStyle }, splitLine: baseSplitLine, axisLine: { show: false } },
+      yAxis: { type: 'category', data: hxData, axisLabel: { ...baseTextStyle, width: 120, overflow: 'truncate' }, axisLine: baseAxisLine, axisTick: { show: false } },
+      series: [{
+        type: 'bar', data: hyData, barMaxWidth: 28,
+        label: { show: true, position: 'right', formatter: p => Number(p.value).toLocaleString(), fontSize: 10, color: '#6B7280', fontFamily: 'DM Sans' },
+      }],
+    };
+  }
+  // ── LINE / AREA ──
+  else if (type === 'line' || type === 'area') {
+    const isArea = type === 'area';
+    option = {
+      title: baseTitle, grid: baseGrid,
+      tooltip: { ...baseTooltip, trigger: 'axis', formatter: p => `<b>${p[0].axisValue}</b><br/>${p[0].marker} ${Number(p[0].value).toLocaleString()}` },
+      xAxis: { type:'category', data: xData, axisLabel: { ...baseTextStyle, rotate: xData.length > 8 ? 30 : 0, interval: Math.floor(xData.length/8) }, splitLine: { show: false }, axisLine: baseAxisLine },
+      yAxis: { type:'value', axisLabel: { ...baseTextStyle, formatter: v => Number(v).toLocaleString() }, splitLine: baseSplitLine, axisLine: { show: false } },
+      series: [{
+        type: 'line', data: yData, smooth: 0.3,
+        symbol: 'circle', symbolSize: xData.length > 20 ? 0 : 5,
+        lineStyle: { color: primary, width: 2.5 },
+        itemStyle: { color: primary, borderColor: '#fff', borderWidth: 2 },
+        areaStyle: isArea ? { color: { type:'linear', x:0,y:0,x2:0,y2:1, colorStops:[{offset:0,color:primary+'55'},{offset:1,color:primary+'08'}] } } : undefined,
+        emphasis: { focus: 'series', itemStyle: { shadowBlur: 12, shadowColor: primary + '66' } },
+      }],
+    };
+  }
+  // ── BAR (default) ──
+  else {
+    const barData = yData.map((v, i) => ({
+      value: v,
+      itemStyle: {
+        color: { type:'linear', x:0,y:0,x2:0,y2:1,
+          colorStops:[{offset:0,color: palette[i % palette.length]},{offset:1,color: palette[i % palette.length] + 'BB'}] },
+        borderRadius: [4,4,0,0],
+      },
+    }));
+    option = {
+      title: baseTitle, grid: baseGrid,
+      tooltip: { ...baseTooltip, trigger: 'axis', axisPointer:{type:'shadow'},
+        formatter: p => `<b>${p[0].axisValue}</b><br/>${p[0].marker} <b>${Number(p[0].value).toLocaleString()}</b>` },
+      xAxis: { type:'category', data: xData, axisLabel: { ...baseTextStyle, rotate: xData.length > 6 ? 30 : 0, interval: 0, width: 80, overflow: 'truncate' }, axisTick: { alignWithLabel: true }, axisLine: baseAxisLine },
+      yAxis: { type:'value', axisLabel: { ...baseTextStyle, formatter: v => Number(v).toLocaleString() }, splitLine: baseSplitLine, axisLine: { show: false } },
+      series: [{
+        type: 'bar', data: barData, barMaxWidth: 48, barCategoryGap: '35%',
+        label: { show: yData.length <= 10, position: 'top', formatter: p => Number(p.value).toLocaleString(), fontSize: 10, color: '#6B7280', fontFamily: 'DM Sans' },
+        emphasis: { itemStyle: { shadowBlur: 16, shadowColor: 'rgba(0,0,0,.15)' } },
+      }],
+    };
+  }
+
+  option.animation = true;
+  option.animationDuration = 800;
+  option.animationEasing = 'cubicOut';
+
+  instance.setOption(option);
+  window.addEventListener('resize', () => { try { instance.resize(); } catch(e){} });
+}
+
+// ════════════════════════════════════════════════════════
+//  PIVOT TABLE
+// ════════════════════════════════════════════════════════
+function renderPivotControls(uid, cols, rows) {
+  const opts = cols.map(c => `<option value="${escAttr(c)}">${escHtml(c)}</option>`).join('');
+  return `
+  <div class="pivot-controls">
+    <label class="text-xs text-ink3">Row:</label>
+    <select class="pivot-select" id="${uid}-prow" onchange="buildPivot('${uid}',${JSON.stringify(cols).replace(/'/g,"\\'")})">${opts}</select>
+    <label class="text-xs text-ink3">Column:</label>
+    <select class="pivot-select" id="${uid}-pcol" onchange="buildPivot('${uid}',${JSON.stringify(cols).replace(/'/g,"\\'")})">${opts.replace('value="'+escAttr(cols[0])+'">','').replace('value="'+escAttr(cols[1] || cols[0])+'">','value="'+escAttr(cols[1] || cols[0])+'\" selected>')}</select>
+    <label class="text-xs text-ink3">Value:</label>
+    <select class="pivot-select" id="${uid}-pval" onchange="buildPivot('${uid}',${JSON.stringify(cols).replace(/'/g,"\\'")})">${opts}</select>
+    <label class="text-xs text-ink3">Agg:</label>
+    <select class="pivot-select" id="${uid}-pagg" onchange="buildPivot('${uid}',${JSON.stringify(cols).replace(/'/g,"\\'")})" style="width:70px">
+      <option>Sum</option><option>Count</option><option>Avg</option><option>Max</option><option>Min</option>
+    </select>
+  </div>
+  <div class="pivot-wrapper" id="${uid}-pivot-out"><div class="text-sm text-ink3">Select fields above to build pivot.</div></div>`;
+}
+
+// Store rows for pivot by uid
+const _pivotData = {};
+function storePivotData(uid, rows) { _pivotData[uid] = rows; }
+
+function buildPivot(uid, cols) {
+  const rows = _pivotData[uid] || [];
+  const rowField = document.getElementById(`${uid}-prow`)?.value;
+  const colField = document.getElementById(`${uid}-pcol`)?.value;
+  const valField = document.getElementById(`${uid}-pval`)?.value;
+  const agg = document.getElementById(`${uid}-pagg`)?.value || 'Sum';
+
+  if (!rowField || !colField || !valField || rowField === colField) return;
+
+  const rowVals = [...new Set(rows.map(r => String(r[rowField] ?? '')))].slice(0, 30);
+  const colVals = [...new Set(rows.map(r => String(r[colField] ?? '')))].slice(0, 20);
+
+  // Aggregate
+  const pivot = {};
+  rowVals.forEach(rv => { pivot[rv] = {}; colVals.forEach(cv => { pivot[rv][cv] = []; }); });
+  rows.forEach(r => {
+    const rv = String(r[rowField] ?? '');
+    const cv = String(r[colField] ?? '');
+    if (pivot[rv] && pivot[rv][cv] !== undefined) {
+      const v = parseFloat(r[valField]);
+      if (!isNaN(v)) pivot[rv][cv].push(v);
+    }
+  });
+
+  const aggFn = (arr) => {
+    if (!arr.length) return '';
+    if (agg === 'Count') return arr.length;
+    if (agg === 'Sum') return arr.reduce((a,b)=>a+b,0).toFixed(2);
+    if (agg === 'Avg') return (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(2);
+    if (agg === 'Max') return Math.max(...arr).toFixed(2);
+    if (agg === 'Min') return Math.min(...arr).toFixed(2);
+  };
+
+  const header = `<tr><th>${escHtml(rowField)} ↓ / ${escHtml(colField)} →</th>${colVals.map(cv => `<th>${escHtml(cv)}</th>`).join('')}</tr>`;
+  const body = rowVals.map(rv =>
+    `<tr><td style="font-weight:600">${escHtml(rv)}</td>${colVals.map(cv => `<td>${escHtml(String(aggFn(pivot[rv][cv])))}</td>`).join('')}</tr>`
+  ).join('');
+
+  document.getElementById(`${uid}-pivot-out`).innerHTML = `<div class="pivot-wrapper"><table class="pivot-table"><thead>${header}</thead><tbody>${body}</tbody></table></div>`;
+}
+
+// ════════════════════════════════════════════════════════
+//  SQL STEP EXPLAINER
+// ════════════════════════════════════════════════════════
+async function fetchSteps(sql, uid) {
+  const el = document.getElementById(`${uid}-steps-content`);
+  if (!el) return;
+  try {
+    const r = await fetch('/api/explain-steps', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ sql, db_name: state.db, provider: state.provider, api_key: state.apiKey })
+    });
+    const d = await r.json();
+    const steps = d.steps || [];
+    if (steps.length) {
+      el.innerHTML = `<div class="steps-list">${steps.map((s,i) => `<div class="step-item"><div class="step-num">${i+1}</div><div class="step-text">${escHtml(s)}</div></div>`).join('')}</div>`;
+    } else {
+      el.innerHTML = '<div class="text-sm text-ink3">No steps available.</div>';
+    }
+  } catch(e) {
+    el.innerHTML = '<div class="text-sm text-ink3">Could not load explanation.</div>';
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  SHARE
+// ════════════════════════════════════════════════════════
+async function shareResult(uid) {
+  if (!state.currentResult) return;
+  const d = state.currentResult;
+  try {
+    const r = await fetch('/api/share', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ question: d.question || '', sql: d.sql, columns: d.columns, rows: d.rows, db_name: state.db })
+    });
+    const data = await r.json();
+    const url = window.location.origin + data.url;
+    const bar = document.getElementById(`${uid}-share`);
+    bar.classList.remove('hidden');
+    bar.innerHTML = `<div class="share-bar"><span class="share-link">${url}</span><button class="btn-sm" onclick="navigator.clipboard.writeText('${escAttr(url)}').then(()=>toast('🔗 Link copied!'))">Copy Link</button></div>`;
+    toast('🔗 Share link created!');
+  } catch(e) { toast('Failed to create share link'); }
+}
+
+// ════════════════════════════════════════════════════════
+//  SCHEMA SUMMARIZATION
+// ════════════════════════════════════════════════════════
+async function summarizeSchema() {
+  if (!state.db) return;
+  const local = ['ollama','huggingface'].includes(state.provider);
+  if (!local && !state.apiKey) { toast('⚠️ Set an API key first'); return; }
+  toast('✨ Generating schema summaries...');
+  try {
+    const r = await fetch('/api/schema-summary', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ db_name: state.db, provider: state.provider, api_key: state.apiKey })
+    });
+    const d = await r.json();
+    state.schemaSummaries = d.summaries || {};
+    await loadSchema(); // re-render with summaries
+    toast('✅ Schema summaries ready');
+  } catch(e) { toast('Failed to summarize schema'); }
+}
+
+// ════════════════════════════════════════════════════════
+//  HINTS
+// ════════════════════════════════════════════════════════
+async function loadHints() {
+  if (!state.db) return;
+  try {
+    const r = await fetch(`/api/examples/${encodeURIComponent(state.db)}`);
+    const d = await r.json();
+    const hints = document.getElementById('query-hints');
+    hints.innerHTML = '';
+    (d.examples || []).slice(0, 5).forEach(ex => {
+      const chip = document.createElement('button');
+      chip.className = 'hint-chip'; chip.textContent = ex;
+      chip.onclick = () => {
+        document.getElementById('query-input').value = ex;
+        autoResize(document.getElementById('query-input'));
+      };
+      hints.appendChild(chip);
+    });
+  } catch(e) {}
+}
+
+function clearConvo() {
+  state.convoMemory = [];
+  const area = document.getElementById('convo-area');
+  area.innerHTML = '<div class="empty-state" id="empty-query"><div class="empty-icon">🧠</div><div class="empty-title">Ask anything about your data</div><div class="empty-sub">Type a question in plain English and QueryMind will generate the SQL, run it, and visualize the results.</div></div>';
+  document.getElementById('cache-badge').classList.add('hidden');
+  toast('Conversation cleared');
+}
+
+// ════════════════════════════════════════════════════════
+//  VOICE INPUT
+// ════════════════════════════════════════════════════════
+function toggleVoice() {
+  const btn = document.getElementById('voice-btn');
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    toast('Voice input not supported in this browser'); return;
+  }
+  if (state.voiceActive) {
+    state.recognition?.stop(); state.voiceActive = false;
+    btn.classList.remove('voice-active');
+    return;
+  }
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const rec = new SpeechRecognition();
+  rec.lang = 'en-US'; rec.continuous = false; rec.interimResults = true;
+  rec.onresult = e => {
+    const transcript = Array.from(e.results).map(r => r[0].transcript).join('');
+    document.getElementById('query-input').value = transcript;
+    autoResize(document.getElementById('query-input'));
+  };
+  rec.onend = () => { state.voiceActive = false; btn.classList.remove('voice-active'); };
+  rec.onerror = () => { state.voiceActive = false; btn.classList.remove('voice-active'); };
+  rec.start();
+  state.recognition = rec; state.voiceActive = true;
+  btn.classList.add('voice-active');
+  toast('🎙️ Listening...');
+}
+
+// ════════════════════════════════════════════════════════
+//  TEXT-TO-DASHBOARD
+// ════════════════════════════════════════════════════════
+const GOAL_CHIPS = [
+  'Understand sales performance across categories',
+  'Analyze student enrollment by department and year',
+  'Show hospital appointment trends by department',
+  'Compare revenue by customer segment',
+  'Identify top and bottom performers',
+];
+
+function initDashboardGoalChips() {
+  const wrap = document.getElementById('goal-chips');
+  GOAL_CHIPS.forEach(g => {
+    const chip = document.createElement('button');
+    chip.className = 'goal-chip'; chip.textContent = g;
+    chip.onclick = () => { document.getElementById('goal-input').value = g; };
+    wrap.appendChild(chip);
+  });
+}
+
+async function generateDashboard() {
+  const goal = document.getElementById('goal-input').value.trim();
+  if (!goal) return;
+  const btn = document.getElementById('gen-dash-btn');
+  btn.disabled = true; btn.textContent = 'Generating...';
+  const out = document.getElementById('dashboard-output');
+  out.innerHTML = `
+    <div class="skeleton" style="height:180px;border-radius:16px;margin-bottom:24px;"></div>
+    <div class="kpi-row" style="margin-bottom:24px">
+      ${[1,2,3,4].map(()=>`<div class="skeleton" style="height:130px;border-radius:16px;"></div>`).join('')}
+    </div>
+    <div class="dashboard-grid">
+      ${[1,2,3,4].map((n)=>`<div class="dash-panel${n===3?' size-full':''}">
+        <div style="height:4px;" class="skeleton"></div>
+        <div class="dash-panel-header"><div class="skeleton" style="height:14px;width:55%;margin-bottom:6px;"></div><div class="skeleton" style="height:10px;width:75%;"></div></div>
+        <div class="dash-panel-body"><div class="skeleton" style="height:260px;border-radius:8px;"></div></div>
+      </div>`).join('')}
+    </div>`;
+
+  try {
+    const r = await fetch('/api/dashboard', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ goal, db_name: state.db, provider: state.provider, api_key: state.apiKey })
+    });
+    const d = await r.json();
+    if (d.detail) { out.innerHTML = `<div class="info-box">⚠️ ${escHtml(d.detail)}</div>`; return; }
+    renderDashboard(d);
+  } catch(e) {
+    out.innerHTML = `<div class="info-box">⚠️ ${escHtml(e.message)}</div>`;
+  } finally { btn.disabled = false; btn.textContent = 'Generate Dashboard'; }
+}
+
+function renderDashboard(d) {
+  const out = document.getElementById('dashboard-output');
+  const theme = d.dashboard_theme || 'blue';
+  const panels = (d.panels || []).filter(p => p.rows && p.rows.length);
+  const kpis   = (d.kpi_row  || []).filter(k => k.rows && k.rows.length);
+  const ts = new Date().toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
+  // ── HERO BANNER ──
+  const heroBg = `dash-theme-${theme}`;
+  const heroHtml = `
+  <div class="dash-hero ${heroBg}">
+    <div class="dash-hero-label">📊 Auto-Generated Dashboard</div>
+    <div class="dash-hero-title">${escHtml(d.dashboard_title)}</div>
+    <div class="dash-hero-sub">${escHtml(d.subtitle || '')}</div>
+    <div class="dash-hero-meta">
+      <div class="dash-hero-stat"><div class="dash-hero-stat-val">${panels.length + kpis.length}</div><div class="dash-hero-stat-lbl">Panels</div></div>
+      <div class="dash-hero-stat"><div class="dash-hero-stat-val">${escHtml(d.db_name || '')}</div><div class="dash-hero-stat-lbl">Database</div></div>
+      <div class="dash-hero-stat"><div class="dash-hero-stat-val">${ts}</div><div class="dash-hero-stat-lbl">Generated</div></div>
+    </div>
+  </div>`;
+
+  // ── KPI ROW ──
+  let kpiHtml = '';
+  if (kpis.length) {
+    const cards = kpis.map(kpi => {
+      const row = kpi.rows[0];
+      const col = kpi.kpi_label || (kpi.columns && kpi.columns[0]) || '';
+      const rawVal = row ? (row[col] ?? Object.values(row)[0] ?? 0) : 0;
+      const numVal = parseFloat(rawVal);
+      const formatted = isNaN(numVal) ? String(rawVal) : numVal >= 1000000
+        ? (numVal/1000000).toFixed(1)+'M'
+        : numVal >= 1000 ? (numVal/1000).toFixed(1)+'K'
+        : numVal % 1 === 0 ? numVal.toLocaleString() : numVal.toFixed(2);
+      const color = kpi.kpi_color || theme;
+      return `
+      <div class="kpi-card kpi-${color}">
+        <span class="kpi-icon">${kpi.kpi_icon || '📊'}</span>
+        <div class="kpi-value">${escHtml((kpi.kpi_prefix||'') + formatted + (kpi.kpi_suffix||''))}</div>
+        <div class="kpi-label">${escHtml(kpi.title || col)}</div>
+        <div class="kpi-insight">${escHtml(kpi.insight || '')}</div>
+        <div class="kpi-bg-icon">${kpi.kpi_icon || '📊'}</div>
+      </div>`;
+    }).join('');
+    kpiHtml = `<div class="kpi-row">${cards}</div>`;
+  }
+
+  // ── CHART PANELS ──
+  const ACCENT_SEQUENCE = ['blue','teal','violet','amber','rose','emerald','orange','cyan','indigo','pink'];
+  const panelHtml = panels.map((panel, i) => {
+    const chartMeta = panel.chart || {};
+    const ctype = chartMeta.type || panel.chart_type || 'bar';
+    const colorTheme = chartMeta.color_theme || chartMeta.color || panel.color_theme || ACCENT_SEQUENCE[i % ACCENT_SEQUENCE.length];
+    const isTable = ctype === 'table';
+    const isFull = panel.size === 'full' || ctype === 'line' || ctype === 'area' || ctype === 'scatter' || (panel.rows && panel.rows.length > 15 && ctype === 'bar');
+    const uid = `dp-${Date.now()}-${i}`;
+    const rowCount = panel.total_rows || (panel.rows && panel.rows.length) || 0;
+
+    // Build a richly colored chart meta object
+    const enrichedChart = {
+      ...chartMeta,
+      type: ctype,
+      color_theme: colorTheme,
+      x: chartMeta.x || panel.x || (panel.columns && panel.columns[0]) || '',
+      y: chartMeta.y || panel.y || (panel.columns && panel.columns[1]) || '',
+    };
+
+    return `
+    <div class="dash-panel${isFull ? ' size-full' : ''}" style="animation-delay:${i * 0.08}s">
+      <div class="dash-panel-accent accent-${colorTheme}"></div>
+      <div class="dash-panel-header">
+        <div>
+          <div class="dash-panel-title">${escHtml(panel.title || '')}</div>
+          <div class="dash-panel-insight">${escHtml(panel.insight || '')}</div>
+        </div>
+        <div class="dash-panel-rows">${rowCount > 0 ? rowCount + ' rows' : ''}</div>
+      </div>
+      <div class="dash-panel-body">
+        ${isTable
+          ? renderDashTable(panel.columns || [], panel.rows || [])
+          : `<div class="dash-echart${isFull?' tall':''}" id="${uid}" data-chart='${escAttr(JSON.stringify(enrichedChart))}' data-idx="${i}"></div>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+
+  out.innerHTML = heroHtml + kpiHtml + `<div class="dashboard-grid">${panelHtml}</div>`;
+
+  // Render all charts after DOM paint
+  out.querySelectorAll('.dash-echart').forEach((el) => {
+    const idx = parseInt(el.dataset.idx);
+    const panel = panels[idx];
+    if (!panel || !panel.rows) return;
+    const chartMeta = JSON.parse(el.getAttribute('data-chart') || '{}');
+    setTimeout(() => {
+      renderEChart(el.id, chartMeta, panel.rows, panel.columns || [], true);
+    }, idx * 90);
+  });
+}
+
+function renderDashTable(cols, rows) {
+  if (!rows.length) return '<div class="text-sm text-ink3" style="padding:8px">No data.</div>';
+  const ths = cols.map(c => `<th>${escHtml(c)}</th>`).join('');
+  const trs = rows.slice(0,50).map(row =>
+    `<tr>${cols.map(c => {
+      const v = row[c];
+      if (v === null || v === undefined) return `<td class="null-cell">—</td>`;
+      return `<td>${escHtml(String(v))}</td>`;
+    }).join('')}</tr>`
+  ).join('');
+  return `<div class="dash-table-wrap"><table class="dash-table"><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table></div>`;
+}
+
+// ════════════════════════════════════════════════════════
+//  DATA PROFILING
+// ════════════════════════════════════════════════════════
+async function profileCurrentDb() {
+  if (!state.db) return;
+  switchTab('profile');
+  const out = document.getElementById('profile-output');
+  out.innerHTML = '<div style="grid-column:1/-1;padding:24px;text-align:center;"><div class="loading-dots" style="justify-content:center"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div><div style="margin-top:8px;font-size:13px;color:var(--ink-3)">Profiling database...</div></div>';
+
+  try {
+    const r = await fetch(`/api/profile/${encodeURIComponent(state.db)}`);
+    const d = await r.json();
+    if (d.detail) { out.innerHTML = `<div class="info-box" style="grid-column:1/-1">⚠️ ${escHtml(d.detail)}</div>`; return; }
+    renderProfile(d.profile || {});
+  } catch(e) {
+    out.innerHTML = `<div class="info-box" style="grid-column:1/-1">⚠️ ${escHtml(e.message)}</div>`;
+  }
+}
+
+function renderProfile(profile) {
+  const out = document.getElementById('profile-output');
+  out.innerHTML = '';
+  Object.entries(profile).forEach(([tbl, cols]) => {
+    const card = document.createElement('div');
+    card.className = 'profile-table-card';
+    const firstCol = Object.values(cols)[0];
+    const rowCount = firstCol?.total_rows || 0;
+    card.innerHTML = `<div class="profile-table-header"><div class="profile-table-name">📋 ${escHtml(tbl)}</div><div class="profile-table-rows">${rowCount.toLocaleString()} rows</div></div><div class="profile-col-list">${
+      Object.entries(cols).map(([col, stat]) => {
+        const nullPct = stat.null_pct ?? 0;
+        const fillColor = nullPct < 5 ? '' : nullPct < 20 ? ' warn' : ' bad';
+        const topVals = (stat.top_values || []).map(t => `<span class="top-val-chip" title="${escAttr(t.value)}">${escHtml(t.value)} <span style="color:var(--accent);font-weight:600">${t.count}</span></span>`).join('');
+        const statsHtml = [];
+        if (stat.unique !== undefined) statsHtml.push(`<div class="profile-stat"><div class="profile-stat-label">Unique</div><div class="profile-stat-value">${stat.unique.toLocaleString()}</div></div>`);
+        if (stat.min !== undefined) statsHtml.push(`<div class="profile-stat"><div class="profile-stat-label">Min</div><div class="profile-stat-value">${stat.min}</div></div>`);
+        if (stat.max !== undefined) statsHtml.push(`<div class="profile-stat"><div class="profile-stat-label">Max</div><div class="profile-stat-value">${stat.max}</div></div>`);
+        if (stat.mean !== undefined) statsHtml.push(`<div class="profile-stat"><div class="profile-stat-label">Mean</div><div class="profile-stat-value">${stat.mean}</div></div>`);
+        return `<div class="profile-col-item">
+          <div class="profile-col-name">${escHtml(col)} <span style="font-size:10px;color:var(--ink-3);font-weight:400;font-family:'DM Sans'">${escHtml(stat.type||'')}</span></div>
+          <div class="profile-col-stats">${statsHtml.join('')}</div>
+          <div class="null-bar-wrap">
+            <div class="null-bar"><div class="null-bar-fill${fillColor}" style="width:${100-nullPct}%"></div></div>
+            <div class="null-bar-label">${100-nullPct}% filled · ${nullPct}% null</div>
+          </div>
+          ${topVals ? `<div class="top-values">${topVals}</div>` : ''}
+        </div>`;
+      }).join('')
+    }</div>`;
+    out.appendChild(card);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  HISTORY
+// ════════════════════════════════════════════════════════
+async function loadHistory() {
+  try {
+    const r = await fetch('/api/history');
+    const d = await r.json();
+    renderHistory(d.history || []);
+  } catch(e) {}
+}
+
+function renderHistory(items) {
+  const out = document.getElementById('history-output');
+  if (!items.length) {
+    out.innerHTML = '<div class="empty-state"><div class="empty-icon">📜</div><div class="empty-title">No history yet</div><div class="empty-sub">Queries you run will appear here, persisted across sessions.</div></div>';
+    return;
+  }
+  out.innerHTML = items.map(item => {
+    const isOk = item.success;
+    return `<div class="history-item" onclick="reuseHistory('${escAttr(item.question)}')">
+      <div class="hist-icon ${isOk?'ok':'err'}">${isOk?'✅':'❌'}</div>
+      <div class="hist-body">
+        <div class="hist-question">${escHtml(item.question || '')}</div>
+        <div class="hist-meta">
+          <span>${item.db_name || ''}</span>
+          <span>·</span>
+          <span>${item.provider || ''}</span>
+          ${item.rows !== undefined ? `<span>· ${item.rows} rows</span>` : ''}
+          ${item.exec_time_s ? `<span>· ${item.exec_time_s.toFixed(2)}s</span>` : ''}
+          <span>· ${item.timestamp || ''}</span>
+        </div>
+        ${item.sql ? `<div class="hist-sql">${escHtml(item.sql)}</div>` : ''}
+      </div>
+      <div class="hist-actions">
+        <button class="icon-btn-xs" title="Re-run" onclick="event.stopPropagation();reuseHistory('${escAttr(item.question)}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function reuseHistory(question) {
+  switchTab('query');
+  const input = document.getElementById('query-input');
+  input.value = question;
+  autoResize(input);
+  input.focus();
+}
+
+async function clearHistory() {
+  await fetch('/api/history', { method:'DELETE' });
+  renderHistory([]);
+  toast('History cleared');
+}
+
+// ════════════════════════════════════════════════════════
+//  FILE IMPORT
+// ════════════════════════════════════════════════════════
+async function importFile() {
+  const file = document.getElementById('file-input').files[0];
+  if (!file) return;
+  const fd = new FormData(); fd.append('file', file);
+  toast('📂 Importing file...');
+  try {
+    const r = await fetch('/api/import', { method:'POST', body: fd });
+    const d = await r.json();
+    if (d.success) {
+      toast(`✅ Imported: ${d.db_name}`);
+      await loadDatabases();
+      const sel = document.getElementById('db-select');
+      sel.value = d.db_name;
+      state.db = d.db_name;
+      await loadSchema();
+    } else { toast('Import failed'); }
+  } catch(e) { toast('Import error: ' + e.message); }
+}
+
+// ════════════════════════════════════════════════════════
+//  UTILITIES
+// ════════════════════════════════════════════════════════
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) { return String(s).replace(/'/g,"\\'"); }
+
+function toast(msg, duration=3000) {
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = 'toast'; el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(() => { el.classList.add('hide'); setTimeout(() => el.remove(), 300); }, duration);
+}
+
+// ════════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════════
+init();
+initDashboardGoalChips();
+
+// Auto-resize textarea on input
+document.getElementById('query-input').addEventListener('input', function() { autoResize(this); });
+
+// Handle shared result in URL
+(async () => {
+  const m = location.pathname.match(/\/api\/share\/([a-z0-9]+)/);
+  if (m) {
+    try {
+      const r = await fetch(`/api/share/${m[1]}`);
+      const d = await r.json();
+      if (d.question) {
+        switchTab('query');
+        appendUserBubble(d.question);
+        appendResultBubble({ sql: d.sql, columns: d.columns, rows: d.rows, explanation: `Shared result for: ${d.question}`, confidence: 1, chart: {} }, d.question);
+      }
+    } catch(e) {}
+  }
+})();
+</script>
+</body>
+</html>

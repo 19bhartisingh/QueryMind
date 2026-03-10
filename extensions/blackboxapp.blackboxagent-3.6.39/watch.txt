@@ -1,0 +1,47 @@
+const { exec } = require('child_process');
+const chokidar = require('chokidar');
+
+// Run initial build
+console.log('Running initial build...');
+exec('npm run build:webview && npm run compile', (error, stdout, stderr) => {
+  if (error) {
+    console.error(`Error during initial build: ${error}`);
+    return;
+  }
+  console.log(stdout);
+  if (stderr) console.error(stderr);
+  console.log('Initial build complete. Watching for changes...');
+});
+
+// Watch for changes
+const watcher = chokidar.watch([
+  'webview-ui/src/**/*',
+  'src/**/*',
+  'electron-audio/src/**/*',
+  'package.json'
+], {
+  ignored: /(^|[\/\\])\../, // ignore dotfiles
+  persistent: true
+});
+
+let debounceTimer;
+
+watcher
+  .on('change', path => {
+    // Debounce the build to prevent multiple rapid builds
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      console.log(`File ${path} has been changed`);
+      exec('npm run build:webview && npm run build:electron-audio && npm run compile', (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error during build: ${error}`);
+          return;
+        }
+        console.log(stdout);
+        if (stderr) console.error(stderr);
+        console.log('Build complete. Watching for changes...');
+      });
+    }, 500); // Wait 500ms before rebuilding
+  });
+
+console.log('Watching for file changes...');

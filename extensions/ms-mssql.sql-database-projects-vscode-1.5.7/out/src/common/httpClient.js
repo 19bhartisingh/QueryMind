@@ -1,0 +1,109 @@
+"use strict";
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.HttpClient = void 0;
+const os = require("os");
+const fs = require("fs");
+const axios_1 = require("axios");
+const constants = require("./constants");
+const DownloadTimeoutMs = 20000;
+/**
+ * Class includes method for making http request
+ */
+class HttpClient {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/naming-convention
+    static cache = new Map();
+    /**
+     * Makes http GET request to the given url. If useCache is set to true, returns the result from cache if exists
+     * @param url url to make http GET request against
+     * @param useCache if true and result is already cached the cached value will be returned
+     * @returns result of http GET request
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    static async getRequest(url, useCache = false) {
+        if (useCache) {
+            if (HttpClient.cache.has(url)) {
+                return HttpClient.cache.get(url);
+            }
+        }
+        const config = {
+            headers: {
+                "Content-Type": "application/json",
+            },
+            validateStatus: () => true, // Never throw
+        };
+        const response = await axios_1.default.get(url, config);
+        if (response.status !== 200) {
+            let errorMessage = [];
+            errorMessage.push(response.status.toString());
+            errorMessage.push(response.statusText);
+            if (response.data?.error) {
+                errorMessage.push(`${response.data?.error?.code} : ${response.data?.error?.message}`);
+            }
+            throw new Error(errorMessage.join(os.EOL));
+        }
+        if (useCache) {
+            HttpClient.cache.set(url, response.data);
+        }
+        return response.data;
+    }
+    /**
+     * Gets a file/fileContents at the given URL.
+     * @param downloadUrl The URL to download the file from
+     * @param targetPath The path to download the file to
+     * @param outputChannel The output channel to output status messages to
+     * @returns Full path to the downloaded file or the contents of the file at the given downloadUrl
+     */
+    async download(downloadUrl, targetPath, outputChannel) {
+        const response = await axios_1.default.get(downloadUrl, {
+            responseType: "stream",
+            timeout: DownloadTimeoutMs,
+            validateStatus: () => true, // Never throw, we check status manually
+        });
+        if (response.status !== 200) {
+            outputChannel?.appendLine(constants.downloadError);
+            throw new Error(response.statusText || `HTTP ${response.status}`);
+        }
+        const contentLength = response.headers["content-length"];
+        const totalBytes = parseInt(contentLength || "0");
+        const totalMegaBytes = totalBytes > 0 ? totalBytes / (1024 * 1024) : undefined;
+        if (totalMegaBytes !== undefined) {
+            outputChannel?.appendLine(`${constants.downloading} ${downloadUrl} (0 / ${totalMegaBytes.toFixed(2)} MB)`);
+        }
+        let receivedBytes = 0;
+        let printThreshold = 0.1;
+        const stream = response.data;
+        return new Promise((resolve, reject) => {
+            const writer = fs.createWriteStream(targetPath);
+            stream.on("data", (chunk) => {
+                receivedBytes += chunk.length;
+                if (totalMegaBytes) {
+                    const receivedMegaBytes = receivedBytes / (1024 * 1024);
+                    const percentage = receivedMegaBytes / totalMegaBytes;
+                    if (percentage >= printThreshold) {
+                        outputChannel?.appendLine(`${constants.downloadProgress} (${receivedMegaBytes.toFixed(2)} / ${totalMegaBytes.toFixed(2)} MB)`);
+                        printThreshold += 0.1;
+                    }
+                }
+            });
+            stream.on("error", (err) => {
+                outputChannel?.appendLine(constants.downloadError);
+                writer.destroy();
+                reject(err);
+            });
+            writer.on("close", () => {
+                resolve();
+            });
+            writer.on("error", (err) => {
+                stream.destroy(err);
+                reject(err);
+            });
+            stream.pipe(writer);
+        });
+    }
+}
+exports.HttpClient = HttpClient;
+//# sourceMappingURL=httpClient.js.map

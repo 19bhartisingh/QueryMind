@@ -1,0 +1,31 @@
+{
+	"name": "tensorflow-snippets",
+	"displayName": "TensorFlow Snippets",
+	"description": "TensorFlow Snippets for VS Code",
+	"version": "0.3.3",
+	"publisher": "vahidk",
+	"icon": "images/icon.png",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/vahidk/tensorflow-snippets.git"
+	},
+	"engines": {
+		"vscode": "^1.15.0"
+	},
+	"categories": [
+		"Snippets"
+	],
+	"contributes": {
+		"snippets": [
+			{
+				"language": "python",
+				"path": "./snippets/snippets.json"
+			}
+		]
+	},
+	"__metadata": {
+		"installedTimestamp": 1771400659822,
+		"targetPlatform": "undefined",
+		"size": 3364790
+	}
+}

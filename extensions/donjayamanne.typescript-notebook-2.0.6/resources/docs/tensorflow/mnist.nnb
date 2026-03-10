@@ -1,0 +1,161 @@
+{
+    "cells": [
+        {
+            "language": "markdown",
+            "source": [
+                "# TensorFlow.js Example: MNIST using tfjs-node and tfjs-vis (Visualizations)\nAdapted from [https://github.com/tensorflow/tfjs-examples/tree/master/mnist-core](https://github.com/tensorflow/tfjs-examples/tree/master/mnist-core)"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "markdown",
+            "source": [
+                "# Preparation"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "markdown",
+            "source": [
+                "## Install missing npm packages"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "shellscript",
+            "source": [
+                "# npm i image-size\n# npm i sharp \n# npm i isomorphic-fetch\n# npm i @tensorflow/tfjs-node @tensorflow/tfjs-vis\n# npm i canvas"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "typescript",
+            "source": [
+                "const tf = require('@tensorflow/tfjs-node') as typeof import('@tensorflow/tfjs-node');\nconst tfvis = require('@tensorflow/tfjs-vis') as typeof import('@tensorflow/tfjs-vis');\nconst Canvas = require('canvas') as typeof import('canvas');\nconst { display } = require('node-kernel');"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "typescript",
+            "source": [
+                "const BATCH_SIZE = 1512;\nconst EPOCHS = 10;\nconst TRAIN_DATA_SIZE = 5500;\nconst TEST_DATA_SIZE = 1000;\n\nconst IMAGE_SIZE = 784;\nconst NUM_CLASSES = 10;\nconst NUM_DATASET_ELEMENTS = 65000;\n\nconst NUM_TRAIN_ELEMENTS = 55000;\nconst NUM_TEST_ELEMENTS = NUM_DATASET_ELEMENTS - NUM_TRAIN_ELEMENTS;\n\nconst MNIST_IMAGES_SPRITE_PATH =\n  \"https://storage.googleapis.com/learnjs-data/model-builder/mnist_images.png\";\nconst MNIST_LABELS_PATH =\n  \"https://storage.googleapis.com/learnjs-data/model-builder/mnist_labels_uint8\";"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "javascript",
+            "source": [
+                "/**\n * @license\n * Copyright 2018 Google LLC. All Rights Reserved.\n * Licensed under the Apache License, Version 2.0 (the \"License\");\n * you may not use this file except in compliance with the License.\n * You may obtain a copy of the License at\n *\n * http://www.apache.org/licenses/LICENSE-2.0\n *\n * Unless required by applicable law or agreed to in writing, software\n * distributed under the License is distributed on an \"AS IS\" BASIS,\n * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n * See the License for the specific language governing permissions and\n * limitations under the License.\n * =============================================================================\n */\n\nconst tf = require(\"@tensorflow/tfjs-node\");\n\n/**\n * A class that fetches the sprited MNIST dataset and returns shuffled batches.\n *\n * NOTE: This will get much easier. For now, we do data fetching and\n * manipulation manually.\n */\nclass MnistData {\n  constructor() {\n    this.shuffledTrainIndex = 0;\n    this.shuffledTestIndex = 0;\n  }\n\n  async load() {\n    // Make a request for the MNIST sprited image.\n    const Canvas = require(\"canvas\");\n    const fetch = require(\"isomorphic-fetch\");\n    const sizeOf = require(\"image-size\");\n    const sharp = require(\"sharp\");\n\n    const imgRequest = new Promise(async (resolve) => {\n      const spriteImage = await fetch(MNIST_IMAGES_SPRITE_PATH);\n      const buffer = Buffer.from(await spriteImage.arrayBuffer());\n      const size = sizeOf(buffer);\n      const sharpBuffer = sharp(buffer);\n\n      const datasetBytesBuffer = new ArrayBuffer(\n        NUM_DATASET_ELEMENTS * IMAGE_SIZE * 4\n      );\n\n      const chunkSize = 5000;\n      const promises = [];\n      async function doIt(i) {\n        const canvas = Canvas.createCanvas(size.width, chunkSize);\n        const ctx = canvas.getContext(\"2d\");\n        const img = new Canvas.Image();\n\n        img.src = await sharpBuffer\n          .extract({\n            left: 0,\n            top: i * chunkSize,\n            width: size.width,\n            height: chunkSize,\n          })\n          .toBuffer();\n\n        const datasetBytesView = new Float32Array(\n          datasetBytesBuffer,\n          i * IMAGE_SIZE * chunkSize * 4,\n          IMAGE_SIZE * chunkSize\n        );\n        ctx.drawImage(\n          img,\n          0,\n          0,\n          size.width,\n          chunkSize,\n          0,\n          0,\n          size.width,\n          chunkSize\n        );\n\n        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);\n\n        for (let j = 0; j < imageData.data.length / 4; j++) {\n          // All channels hold an equal value since the image is grayscale, so\n          // just read the red channel.\n          datasetBytesView[j] = imageData.data[j * 4] / 255;\n        }\n      }\n      for (let i = 0; i < NUM_DATASET_ELEMENTS / chunkSize; i++) {\n        promises.push(doIt(i));\n      }\n      await Promise.all(promises);\n      this.datasetImages = new Float32Array(datasetBytesBuffer);\n\n      resolve();\n    });\n\n    const labelsRequest = fetch(MNIST_LABELS_PATH);\n    const [imgResponse, labelsResponse] = await Promise.all([\n      imgRequest,\n      labelsRequest,\n    ]);\n\n    this.datasetLabels = new Uint8Array(await labelsResponse.arrayBuffer());\n\n    // Create shuffled indices into the train/test set for when we select a\n    // random dataset element for training / validation.\n    this.trainIndices = tf.util.createShuffledIndices(NUM_TRAIN_ELEMENTS);\n    this.testIndices = tf.util.createShuffledIndices(NUM_TEST_ELEMENTS);\n\n    // Slice the the images and labels into train and test sets.\n    this.trainImages = this.datasetImages.slice(\n      0,\n      IMAGE_SIZE * NUM_TRAIN_ELEMENTS\n    );\n    this.testImages = this.datasetImages.slice(IMAGE_SIZE * NUM_TRAIN_ELEMENTS);\n    this.trainLabels = this.datasetLabels.slice(\n      0,\n      NUM_CLASSES * NUM_TRAIN_ELEMENTS\n    );\n    this.testLabels = this.datasetLabels.slice(\n      NUM_CLASSES * NUM_TRAIN_ELEMENTS\n    );\n  }\n\n  nextTrainBatch(batchSize) {\n    return this.nextBatch(\n      batchSize,\n      [this.trainImages, this.trainLabels],\n      () => {\n        this.shuffledTrainIndex =\n          (this.shuffledTrainIndex + 1) % this.trainIndices.length;\n        return this.trainIndices[this.shuffledTrainIndex];\n      }\n    );\n  }\n\n  nextTestBatch(batchSize) {\n    return this.nextBatch(batchSize, [this.testImages, this.testLabels], () => {\n      this.shuffledTestIndex =\n        (this.shuffledTestIndex + 1) % this.testIndices.length;\n      return this.testIndices[this.shuffledTestIndex];\n    });\n  }\n\n  nextBatch(batchSize, data, index) {\n    const batchImagesArray = new Float32Array(batchSize * IMAGE_SIZE);\n    const batchLabelsArray = new Uint8Array(batchSize * NUM_CLASSES);\n\n    for (let i = 0; i < batchSize; i++) {\n      const idx = index();\n\n      const image = data[0].slice(\n        idx * IMAGE_SIZE,\n        idx * IMAGE_SIZE + IMAGE_SIZE\n      );\n      batchImagesArray.set(image, i * IMAGE_SIZE);\n\n      const label = data[1].slice(\n        idx * NUM_CLASSES,\n        idx * NUM_CLASSES + NUM_CLASSES\n      );\n      batchLabelsArray.set(label, i * NUM_CLASSES);\n    }\n\n    const xs = tf.tensor2d(batchImagesArray, [batchSize, IMAGE_SIZE]);\n    const labels = tf.tensor2d(batchLabelsArray, [batchSize, NUM_CLASSES]);\n\n    return { xs, labels };\n  }\n}"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "javascript",
+            "source": [
+                "/**\n * @license\n * Copyright 2018 Google LLC. All Rights Reserved.\n * Licensed under the Apache License, Version 2.0 (the \"License\");\n * you may not use this file except in compliance with the License.\n * You may obtain a copy of the License at\n *\n * http://www.apache.org/licenses/LICENSE-2.0\n *\n * Unless required by applicable law or agreed to in writing, software\n * distributed under the License is distributed on an \"AS IS\" BASIS,\n * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n * See the License for the specific language governing permissions and\n * limitations under the License.\n * =============================================================================\n */\n\nconst tf = require(\"@tensorflow/tfjs-node\");\n\nfunction getModel() {\n    const model = tf.sequential();\n\n    model.add(\n        tf.layers.conv2d({\n            inputShape: [28, 28, 1],\n            kernelSize: 5,\n            filters: 8,\n            strides: 1,\n            activation: \"relu\",\n            kernelInitializer: \"varianceScaling\",\n        })\n    );\n\n    model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }));\n    model.add(\n        tf.layers.conv2d({\n            kernelSize: 5,\n            filters: 16,\n            strides: 1,\n            activation: \"relu\",\n            kernelInitializer: \"varianceScaling\",\n        })\n    );\n\n    model.add(tf.layers.maxPooling2d({ poolSize: [2, 2], strides: [2, 2] }));\n    model.add(tf.layers.flatten());\n\n    model.add(\n        tf.layers.dense({\n            units: 10,\n            kernelInitializer: \"varianceScaling\",\n            activation: \"softmax\",\n        })\n    );\n\n    const LEARNING_RATE = 0.15;\n    const optimizer = tf.train.sgd(LEARNING_RATE);\n\n    model.compile({\n        optimizer: optimizer,\n        loss: \"categoricalCrossentropy\",\n        metrics: [\"accuracy\"],\n    });\n\n    return model;\n};\n"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "typescript",
+            "source": [
+                "const images: string[] = [];\nasync function showExamples() {\n    // Get the examples\n    const examples = data.nextTestBatch(20);\n    const numExamples = examples.xs.shape[0];\n    for (let i = 0; i < numExamples; i++) {\n        const imageTensor = tf.tidy(() => {\n            return examples.xs.slice([i, 0], [1, examples.xs.shape[1]]).reshape([\n                28, 28, 1\n            ]);\n        });\n\n        const canvas = Canvas.createCanvas(28, 28);\n        canvas.style = 'margin: 4px;';\n        const bytes = await tf.browser.toPixels(imageTensor);\n        const ctx = canvas.getContext('2d');\n        const imageData = Canvas.createImageData(bytes, 28, 28);\n        ctx.putImageData(imageData, 0, 0);\n\n        const base64String = canvas.toBuffer('image/png').toString('base64')\n        const img = `<div style=\"float:left;height:28px;width:28px;margin:1px;background:url('data:image/png;base64,${base64String}')\"></div>`;\n\n        images.push(img);\n\n        imageTensor.dispose();\n    }\n}"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "javascript",
+            "source": [
+                "const metrics = ['loss', 'val_loss', 'acc', 'val_acc'];\nasync function train(model, data) {\n    const container = {\n        name: 'Model Training', tab: 'Model', styles: { height: '1000px' }\n    };\n    const fitCallbacks = tfvis.show.fitCallbacks(container, metrics);\n\n    const [trainXs, trainYs] = tf.tidy(() => {\n        const d = data.nextTrainBatch(TRAIN_DATA_SIZE);\n        return [\n            d.xs.reshape([TRAIN_DATA_SIZE, 28, 28, 1]),\n            d.labels\n        ];\n    });\n\n    const [testXs, testYs] = tf.tidy(() => {\n        const d = data.nextTestBatch(TEST_DATA_SIZE);\n        return [\n            d.xs.reshape([TEST_DATA_SIZE, 28, 28, 1]),\n            d.labels\n        ];\n    });\n\n    return model.fit(trainXs, trainYs, {\n        batchSize: BATCH_SIZE,\n        validationData: [testXs, testYs],\n        epochs: EPOCHS,\n        shuffle: true,\n        callbacks: fitCallbacks\n    });\n}\n"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "javascript",
+            "source": [
+                "const classNames = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];\n\nfunction doPrediction(model, data, testDataSize = 500) {\n    const IMAGE_WIDTH = 28;\n    const IMAGE_HEIGHT = 28;\n    const testData = data.nextTestBatch(testDataSize);\n    const testxs = testData.xs.reshape([testDataSize, IMAGE_WIDTH, IMAGE_HEIGHT, 1]);\n    const labels = testData.labels.argMax(-1);\n    const preds = model.predict(testxs).argMax(-1);\n\n    testxs.dispose();\n    return [preds, labels];\n}\n\n\nasync function showAccuracy(model, data) {\n    const [preds, labels] = doPrediction(model, data);\n    const classAccuracy = await tfvis.metrics.perClassAccuracy(labels, preds);\n    const container = { name: 'Accuracy', tab: 'Evaluation' };\n    tfvis.show.perClassAccuracy(container, classAccuracy, classNames);\n\n    labels.dispose();\n}\n\nasync function showConfusion(model, data) {\n    const [preds, labels] = doPrediction(model, data);\n    const confusionMatrix = await tfvis.metrics.confusionMatrix(labels, preds);\n    const container = { name: 'Confusion Matrix', tab: 'Evaluation' };\n    tfvis.render.confusionMatrix(container, { values: confusionMatrix, tickLabels: classNames });\n\n    labels.dispose();\n}"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "markdown",
+            "source": [
+                "# Load data & create the model"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "javascript",
+            "source": [
+                "const data = new MnistData(tf)\nconst model = getModel();\ndata.load()"
+            ],
+            "outputs": [],
+            "metadata": {
+                "outputCollapsed": true
+            }
+        },
+        {
+            "language": "typescript",
+            "source": [
+                "tfvis.visor().open();"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "typescript",
+            "source": [
+                "tfvis.show.modelSummary({ name: 'Model Architecture', tab: 'Model' }, model);"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "markdown",
+            "source": [
+                "# View some sample data"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "javascript",
+            "source": [
+                "await showExamples()\ndisplay.html(images.join(''))"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "markdown",
+            "source": [
+                "# Train"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "typescript",
+            "source": [
+                "const trainingHistory = await train(model, data);"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "markdown",
+            "source": [
+                "# View history & evaluate training"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "typescript",
+            "source": [
+                "tfvis.show.history({ name: 'Training History', tab: 'Training' }, trainingHistory, metrics);"
+            ],
+            "outputs": []
+        },
+        {
+            "language": "javascript",
+            "source": [
+                "await showAccuracy(model, data);\nawait showConfusion(model, data);\n"
+            ],
+            "outputs": []
+        }
+    ]
+}

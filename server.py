@@ -1,5 +1,7 @@
 """
-
+╔══════════════════════════════════════════════════════════════╗
+║  server.py  —  FastAPI REST API Backend for QueryMind v4.0   ║
+╚══════════════════════════════════════════════════════════════╝
 
 NEW IN v4.0:
   ★ Persistent SQLite history  — survives server restarts
@@ -41,7 +43,7 @@ from database import (
 from nl_to_sql import (
     natural_language_to_sql, EXAMPLE_QUERIES, get_provider_status,
     summarize_schema_tables, explain_sql_steps,
-    generate_dashboard_plan, DASHBOARD_GOALS,
+    generate_dashboard_plan, generate_insights, DASHBOARD_GOALS,
 )
 from file_importer import (
     import_file, delete_uploaded_database, SUPPORTED_EXTENSIONS,
@@ -535,8 +537,34 @@ async def explain_sql_step_by_step(req: ExplainRequest):
 
 
 # ─────────────────────────────────────────────────────────
-#  SHAREABLE RESULTS
+#  AI INSIGHTS
 # ─────────────────────────────────────────────────────────
+
+class InsightsRequest(BaseModel):
+    question:  str
+    columns:   List[str]
+    rows:      List[Dict]
+    provider:  str
+    api_key:   str           = ""
+    model:     Optional[str] = None
+
+
+@app.post("/api/insights")
+async def get_query_insights(req: InsightsRequest):
+    if not req.rows or not req.columns:
+        return {"insights": []}
+    insights = generate_insights(
+        question = req.question,
+        columns  = req.columns,
+        rows     = req.rows,
+        provider = req.provider,
+        api_key  = req.api_key,
+        model    = req.model,
+    )
+    return {"insights": insights}
+
+
+
 
 class ShareRequest(BaseModel):
     question: str; sql: str; columns: List[str]; rows: List[Dict]; db_name: str

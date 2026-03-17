@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>QueryMind</title>
+<title>QueryMind — Natural Language to SQL</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
@@ -68,7 +68,7 @@
     width: 36px; height: 36px; border-radius: 9px;
     background: var(--surface-2); border: 1px solid var(--border);
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: background.2s, border-color .2s, transform .15s;
+    cursor: pointer; transition: background .2s, border-color .2s, transform .15s;
     flex-shrink: 0; position: relative; overflow: hidden;
   }
   .theme-toggle:hover { background: var(--border); transform: scale(1.07); }
@@ -385,6 +385,40 @@
 
   .result-panel { display: none; padding: 16px; }
   .result-panel.active { display: block; }
+
+  /* ── INSIGHTS ── */
+  .insights-list { display: flex; flex-direction: column; gap: 10px; }
+  .insight-card {
+    display: flex; gap: 13px; align-items: flex-start;
+    padding: 13px 15px; border-radius: 12px;
+    background: var(--bg); border: 1px solid var(--border);
+    transition: border-color .15s, transform .15s, box-shadow .15s;
+    animation: fadeSlide .3s ease both;
+  }
+  .insight-card:hover {
+    border-color: var(--accent); transform: translateX(3px);
+    box-shadow: var(--shadow-sm);
+  }
+  .insight-icon {
+    font-size: 20px; flex-shrink: 0; margin-top: 1px;
+    width: 34px; height: 34px; border-radius: 9px;
+    background: var(--surface); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .insight-text { font-size: 13px; color: var(--ink-2); line-height: 1.6; flex: 1; }
+  .insight-text strong { color: var(--ink); font-weight: 600; }
+
+  .insights-loading {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 4px; color: var(--ink-3); font-size: 13px;
+  }
+  .insights-tab-dot {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); margin-left: 4px; vertical-align: middle;
+    animation: pulse 1.5s infinite;
+  }
+  html.dark .insight-card { background: var(--surface-2); }
+  html.dark .insight-icon  { background: var(--surface); }
 
   /* Data table */
   .data-table-wrap { overflow: auto; max-height: 380px; border-radius: 8px; border: 1px solid var(--border); }
@@ -1297,6 +1331,9 @@ function appendResultBubble(d, question) {
     }
   }
   tabs += `<button class="result-tab" onclick="switchResultTab('${uid}','steps',this)">Explain</button>`;
+  if (hasData) {
+    tabs += `<button class="result-tab" id="${uid}-insights-tab" onclick="switchResultTab('${uid}','insights',this)">💡 Insights<span class="insights-tab-dot"></span></button>`;
+  }
 
   // Anomaly alerts
   let anomalyHtml = '';
@@ -1334,6 +1371,14 @@ function appendResultBubble(d, question) {
       <div class="text-sm text-ink3" style="margin-bottom:10px">Loading step-by-step explanation...</div>
       <div id="${uid}-steps-content"></div>
     </div>
+    ${hasData ? `
+    <div id="${uid}-insights" class="result-panel">
+      <div class="insights-loading" id="${uid}-insights-loading">
+        <div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>
+        <span>Generating insights from your data…</span>
+      </div>
+      <div id="${uid}-insights-content"></div>
+    </div>` : ''}
     <div id="${uid}-share" class="hidden" style="padding:0 16px 12px;"></div>
   </div>`;
 
@@ -1356,6 +1401,11 @@ function appendResultBubble(d, question) {
 
   // Pre-fetch steps
   fetchSteps(d.sql, uid);
+
+  // Pre-fetch AI insights (lazy, parallel to steps)
+  if (hasData) {
+    fetchInsights(question, rows, cols, uid);
+  }
 }
 
 function switchResultTab(uid, tab, btn) {
@@ -1717,6 +1767,75 @@ async function fetchSteps(sql, uid) {
     }
   } catch(e) {
     el.innerHTML = '<div class="text-sm text-ink3">Could not load explanation.</div>';
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  AI INSIGHTS
+// ════════════════════════════════════════════════════════
+async function fetchInsights(question, rows, cols, uid) {
+  const content = document.getElementById(`${uid}-insights-content`);
+  const loading = document.getElementById(`${uid}-insights-loading`);
+  const tabBtn  = document.getElementById(`${uid}-insights-tab`);
+  if (!content) return;
+
+  try {
+    const r = await fetch('/api/insights', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question,
+        columns:  cols,
+        rows:     rows.slice(0, 50),   // cap payload size
+        provider: state.provider,
+        api_key:  state.apiKey,
+      })
+    });
+    const d = await r.json();
+    const insights = d.insights || [];
+
+    // Hide spinner
+    if (loading) loading.style.display = 'none';
+
+    // Remove pulsing dot from tab once loaded
+    if (tabBtn) {
+      const dot = tabBtn.querySelector('.insights-tab-dot');
+      if (dot) dot.remove();
+    }
+
+    if (!insights.length) {
+      content.innerHTML = `
+        <div class="empty-state" style="padding:24px 0">
+          <div class="empty-icon">💡</div>
+          <div class="empty-title" style="font-size:15px">No insights generated</div>
+          <div class="empty-sub">Try a query that returns more varied data.</div>
+        </div>`;
+      return;
+    }
+
+    // Bold any numbers/percentages in the insight text for scannability
+    function highlightNumbers(text) {
+      return escHtml(text).replace(
+        /(\d[\d,]*\.?\d*\s*%|\d[\d,]*\.?\d+|\b\d{1,3}(?:,\d{3})+\b)/g,
+        '<strong>$1</strong>'
+      );
+    }
+
+    content.innerHTML = `
+      <div class="insights-list">
+        ${insights.map((ins, i) => `
+          <div class="insight-card" style="animation-delay:${i * 0.07}s">
+            <div class="insight-icon">${escHtml(ins.icon || '💡')}</div>
+            <div class="insight-text">${highlightNumbers(ins.text || '')}</div>
+          </div>`).join('')}
+      </div>
+      <div style="margin-top:12px;font-size:11px;color:var(--ink-3);text-align:right">
+        ✨ AI-generated · ${insights.length} insight${insights.length !== 1 ? 's' : ''}
+      </div>`;
+
+  } catch(e) {
+    if (loading) loading.style.display = 'none';
+    content.innerHTML = `<div class="text-sm text-ink3" style="padding:4px 0">Could not generate insights.</div>`;
   }
 }
 

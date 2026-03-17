@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════╗
-║ 
+║  nl_to_sql.py  —  Natural Language → SQL Engine  v3.0       ║
 ╚══════════════════════════════════════════════════════════════╝
 
 NEW IN v3.0:
@@ -806,6 +806,162 @@ Return ONLY a JSON array of strings."""
     except Exception as e:
         print(f"Explain steps error: {e}")
         return [f"Explanation unavailable: {e}"]
+
+    return []
+
+
+# ─────────────────────────────────────────────────────────
+#  AI-GENERATED INSIGHTS
+# ─────────────────────────────────────────────────────────
+
+INSIGHTS_SYSTEM_PROMPT = """You are a sharp data analyst. You are given the results of a SQL query
+along with the original question that produced them.
+
+Your job: generate 3-5 concise, high-value insights from the data.
+
+RULES:
+- Each insight must be a standalone observation: a trend, outlier, comparison,
+  percentage, ranking, or anomaly that a non-technical reader would find valuable.
+- Be specific: use actual numbers, names, or percentages from the data where possible.
+- Do NOT restate the question or explain what the query does.
+- Do NOT give generic filler like "the data shows results" — every bullet must be
+  a real finding.
+- Keep each insight to 1-2 sentences maximum.
+- Vary the insight types: include at least one trend/comparison AND one outlier/anomaly
+  when the data allows it.
+- Assign each insight an icon from: 📈 📉 🏆 ⚠️ 💡 🔍 📊 🎯 ⚡ 🔗
+  that best matches the finding type.
+
+OUTPUT FORMAT — return ONLY a JSON array (no markdown, no code fences):
+[
+  {"icon": "🏆", "text": "Computer Science has the highest average GPA of 3.82, outperforming all other departments."},
+  {"icon": "⚠️", "text": "3 students have a GPA below 1.5, which may indicate academic risk."},
+  {"icon": "📈", "text": "Enrollment has grown 18% from 2022 to 2024 across all departments."}
+]"""
+
+
+def _build_insights_prompt(question: str, columns: List[str], rows: List[Dict]) -> str:
+    """Build a compact data snapshot for the insights AI call."""
+    col_str = ", ".join(columns)
+    # Send at most 50 rows to stay within token budget
+    sample = rows[:50]
+    # Format as a compact CSV-style block
+    lines = [col_str]
+    for row in sample:
+        lines.append(", ".join(str(row.get(c, "")) for c in columns))
+    data_block = "\n".join(lines)
+    truncation_note = f"\n(showing {len(sample)} of {len(rows)} rows)" if len(rows) > 50 else ""
+    return (
+        f'Original question: "{question}"\n\n'
+        f"Query results ({len(rows)} rows, {len(columns)} columns){truncation_note}:\n"
+        f"{data_block}\n\n"
+        "Generate 3-5 data insights from the above results."
+    )
+
+
+def _parse_insights(text: str) -> List[Dict]:
+    """Parse the insights JSON array from the AI response."""
+    text = re.sub(r'```(?:json)?\s*', '', text).replace('```', '').strip()
+    # Try full parse
+    try:
+        data = json.loads(text)
+        if isinstance(data, list):
+            return [d for d in data if isinstance(d, dict) and "text" in d]
+    except json.JSONDecodeError:
+        pass
+    # Try extracting array from surrounding text
+    m = re.search(r'\[.*?\]', text, re.DOTALL)
+    if m:
+        try:
+            data = json.loads(m.group())
+            if isinstance(data, list):
+                return [d for d in data if isinstance(d, dict) and "text" in d]
+        except json.JSONDecodeError:
+            pass
+    # Fallback: extract bullet lines and wrap them
+    insights = []
+    for line in text.split('\n'):
+        line = line.strip().lstrip('•-*123456789. ')
+        if len(line) > 20:
+            insights.append({"icon": "💡", "text": line})
+    return insights[:5]
+
+
+def generate_insights(
+    question: str,
+    columns: List[str],
+    rows: List[Dict],
+    provider: str,
+    api_key: str = "",
+    model: str = None,
+) -> List[Dict]:
+    """
+    Generate 3-5 AI insights from query results.
+
+    Returns a list of {"icon": "...", "text": "..."} dicts.
+    Falls back gracefully to an empty list on any error.
+    """
+    if not rows or not columns:
+        return []
+
+    prompt = _build_insights_prompt(question, columns, rows)
+
+    try:
+        if provider == "ollama":
+            if not check_ollama_running():
+                return []
+            m = model or get_best_ollama_model()
+            if not m:
+                return []
+            resp = requests.post(
+                f"{OLLAMA_URL}/api/generate",
+                json={
+                    "model": m,
+                    "prompt": f"[INST] {INSIGHTS_SYSTEM_PROMPT}\n\n{prompt} [/INST]",
+                    "stream": False,
+                    "options": {"temperature": 0.3, "num_predict": 700},
+                },
+                timeout=60,
+            )
+            return _parse_insights(resp.json().get("response", ""))
+
+        if not api_key.strip():
+            return []
+
+        if provider == "gemini" and GEMINI_AVAILABLE:
+            genai.configure(api_key=api_key)
+            m_obj = genai.GenerativeModel(
+                "gemini-1.5-flash",
+                system_instruction=INSIGHTS_SYSTEM_PROMPT,
+            )
+            return _parse_insights(m_obj.generate_content(prompt).text)
+
+        if provider == "openai" and OPENAI_AVAILABLE:
+            client = OpenAI(api_key=api_key)
+            resp = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": INSIGHTS_SYSTEM_PROMPT},
+                    {"role": "user",   "content": prompt},
+                ],
+                temperature=0.3, max_tokens=700,
+            )
+            return _parse_insights(resp.choices[0].message.content)
+
+        if provider == "groq" and GROQ_AVAILABLE:
+            client = Groq(api_key=api_key)
+            resp = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": INSIGHTS_SYSTEM_PROMPT},
+                    {"role": "user",   "content": prompt},
+                ],
+                temperature=0.3, max_tokens=700,
+            )
+            return _parse_insights(resp.choices[0].message.content)
+
+    except Exception as e:
+        print(f"Insights generation error: {e}")
 
     return []
 

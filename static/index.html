@@ -37,6 +37,181 @@
     --shadow-lg:  0 12px 32px rgba(0,0,0,.1), 0 4px 8px rgba(0,0,0,.06);
   }
 
+  /* ── DARK THEME TOKENS ── */
+  html.dark {
+    --bg:         #0F1117;
+    --surface:    #1A1D27;
+    --surface-2:  #22263A;
+    --border:     #2D3148;
+    --border-2:   #3A3F5C;
+    --ink:        #F0F2FA;
+    --ink-2:      #A8AECB;
+    --ink-3:      #636A8A;
+    --accent:     #4F8EF7;
+    --accent-2:   #3B7AEF;
+    --accent-bg:  #1A2744;
+    --green:      #34D399;
+    --green-bg:   #0D2E23;
+    --amber:      #FBBF24;
+    --amber-bg:   #2B2005;
+    --red:        #F87171;
+    --red-bg:     #2B0E0E;
+    --violet:     #A78BFA;
+    --violet-bg:  #1E1533;
+    --shadow-sm:  0 1px 3px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.25);
+    --shadow:     0 4px 12px rgba(0,0,0,.4), 0 1px 3px rgba(0,0,0,.3);
+    --shadow-lg:  0 12px 32px rgba(0,0,0,.5), 0 4px 8px rgba(0,0,0,.35);
+  }
+
+  /* ── THEME TOGGLE BUTTON ── */
+  .theme-toggle {
+    width: 36px; height: 36px; border-radius: 9px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: background.2s, border-color .2s, transform .15s;
+    flex-shrink: 0; position: relative; overflow: hidden;
+  }
+  .theme-toggle:hover { background: var(--border); transform: scale(1.07); }
+  .theme-toggle .icon-sun,
+  .theme-toggle .icon-moon {
+    position: absolute; width: 16px; height: 16px;
+    transition: opacity .3s, transform .3s;
+  }
+  html:not(.dark) .icon-sun  { opacity: 1; transform: rotate(0deg) scale(1); }
+  html:not(.dark) .icon-moon { opacity: 0; transform: rotate(90deg) scale(.6); }
+  html.dark .icon-sun  { opacity: 0; transform: rotate(-90deg) scale(.6); }
+  html.dark .icon-moon { opacity: 1; transform: rotate(0deg) scale(1); }
+
+  /* ── DARK OVERRIDES — specific elements ── */
+  html.dark .sql-block { background: #0D1117; color: #8B949E; }
+  html.dark .sql-keyword { color: #79C0FF; }
+  html.dark .sql-string  { color: #A5D6FF; }
+  html.dark .sql-number  { color: #FFA657; }
+  html.dark .sql-comment { color: #484F58; }
+  html.dark .copy-sql-btn { background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.12); color: #8B949E; }
+
+  /* Tables */
+  html.dark thead th   { background: var(--surface-2); color: var(--ink-2); }
+  html.dark tbody td   { color: var(--ink-2); }
+  html.dark tbody tr:hover { background: var(--surface-2); }
+  html.dark .null-cell { color: var(--ink-3); }
+
+  /* Skeleton */
+  html.dark .skeleton {
+    background: linear-gradient(90deg, var(--surface-2) 25%, var(--border) 50%, var(--surface-2) 75%);
+    background-size: 200% 100%;
+  }
+
+  /* Cards */
+  html.dark .kpi-card { box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+  html.dark .kpi-value { color: var(--ink); }
+  html.dark .kpi-label { color: var(--ink-3); }
+  html.dark .kpi-insight { color: var(--ink-3); }
+
+  /* Dashboard */
+  html.dark .dash-hero::before {
+    background: radial-gradient(ellipse at 80% 20%, rgba(255,255,255,.08) 0%, transparent 60%);
+  }
+  html.dark .dash-panel-title   { color: var(--ink); }
+  html.dark .dash-panel-insight { color: var(--ink-3); }
+  html.dark .dash-panel-rows    { color: var(--ink-3); }
+  html.dark .dash-table tbody td { color: var(--ink-2); }
+  html.dark .dash-table tbody tr:hover { background: var(--border); }
+
+  /* Alerts / info boxes */
+  html.dark .anomaly-alert { background: #2B1E05; border-color: #78350F; }
+  html.dark .anomaly-text  { color: var(--amber); }
+  html.dark .info-box { background: var(--accent-bg); border-color: var(--accent); color: var(--ink-2); }
+
+  /* Messages */
+  html.dark .msg-user .msg-content { background: var(--accent); color: #fff; }
+  html.dark .msg-ai .msg-content   { background: var(--surface); border-color: var(--border); color: var(--ink); }
+  html.dark .msg-label              { color: var(--ink-3); }
+  html.dark .msg-user .msg-label   { color: var(--accent); }
+
+  /* Inputs & Controls */
+  html.dark .query-input-wrap  { background: var(--surface-2); border-color: var(--border); }
+  html.dark .query-input-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,142,247,.15); }
+  html.dark .query-textarea    { color: var(--ink); }
+  html.dark .query-textarea::placeholder { color: var(--ink-3); }
+  html.dark .select-wrap select { background: var(--surface-2); border-color: var(--border); color: var(--ink); }
+  html.dark .select-wrap::after { border-top-color: var(--ink-3); }
+  html.dark .api-key-input { background: var(--surface-2); border-color: var(--border); color: var(--ink); }
+  html.dark .goal-input    { background: var(--surface-2); border-color: var(--border); color: var(--ink); }
+  html.dark .goal-input::placeholder { color: var(--ink-3); }
+  html.dark .pivot-select  { background: var(--surface-2); border-color: var(--border); color: var(--ink); }
+
+  /* Buttons */
+  html.dark .btn-ghost  { border-color: var(--border); color: var(--ink-2); }
+  html.dark .btn-ghost:hover { background: var(--surface-2); border-color: var(--border-2); color: var(--ink); }
+  html.dark .icon-btn   { color: var(--ink-3); }
+  html.dark .icon-btn:hover { background: var(--surface-2); color: var(--ink); }
+  html.dark .icon-btn-xs { color: var(--ink-3); }
+  html.dark .icon-btn-xs:hover { background: var(--surface-2); color: var(--ink); }
+  html.dark .tab-btn    { color: var(--ink-3); }
+  html.dark .tab-btn:hover { color: var(--ink); }
+  html.dark .tab-btn.active { color: var(--accent); }
+  html.dark .sidebar-nav-btn { color: var(--ink-2); }
+  html.dark .sidebar-nav-btn:hover { color: var(--ink); }
+  html.dark .sidebar-nav-btn.active { color: var(--accent); background: var(--accent-bg); }
+  html.dark .hint-chip  { color: var(--ink-3); background: var(--surface-2); border-color: var(--border); }
+  html.dark .hint-chip:hover { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+  html.dark .goal-chip  { color: var(--ink-2); background: var(--surface); border-color: var(--border); }
+  html.dark .goal-chip:hover { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+
+  /* Profile */
+  html.dark .profile-table-header { background: var(--surface-2); }
+  html.dark .profile-table-name  { color: var(--ink); }
+  html.dark .profile-col-name    { color: var(--ink); }
+  html.dark .profile-stat-value  { color: var(--ink-2); }
+  html.dark .top-val-chip        { background: var(--border); color: var(--ink-3); }
+
+  /* History */
+  html.dark .hist-question { color: var(--ink); }
+  html.dark .hist-meta     { color: var(--ink-3); }
+  html.dark .hist-sql      { color: var(--ink-3); }
+  html.dark .history-item:hover { border-color: var(--border-2); }
+
+  /* Schema tree */
+  html.dark .schema-table-header { color: var(--ink-2); }
+  html.dark .schema-table-header:hover { background: var(--surface-2); }
+  html.dark .schema-col-name { color: var(--ink-2); }
+  html.dark .schema-col-type { color: var(--ink-3); }
+  html.dark .schema-summary-text { color: var(--ink-3); border-color: var(--violet); }
+
+  /* Misc */
+  html.dark .result-card-title { color: var(--ink); }
+  html.dark .result-tab        { color: var(--ink-3); }
+  html.dark .result-tab:hover  { color: var(--ink); }
+  html.dark .result-tab.active { color: var(--accent); }
+  html.dark .step-text         { color: var(--ink-2); }
+  html.dark .step-item         { background: var(--surface-2); }
+  html.dark .share-link        { color: var(--accent); }
+  html.dark .share-bar         { background: var(--surface-2); border-color: var(--border); }
+  html.dark .provider-pill     { color: var(--ink-3); border-color: var(--border); background: var(--surface); }
+  html.dark .page-title        { color: var(--ink); }
+  html.dark .page-sub          { color: var(--ink-3); }
+  html.dark .empty-title       { color: var(--ink); }
+  html.dark .empty-sub         { color: var(--ink-3); }
+  html.dark .logo-name         { color: var(--ink); }
+  html.dark .sidebar-section-label { color: var(--ink-3); }
+  html.dark .null-bar-label    { color: var(--ink-3); }
+  html.dark .dash-hero-title   { color: #fff; }
+  html.dark .dash-hero-sub     { color: rgba(255,255,255,.85); }
+  html.dark .schema-summary-badge { background: var(--violet-bg); color: var(--violet); }
+  html.dark .schema-summary-badge:hover { background: var(--violet); color: #fff; }
+  html.dark .toast { background: #EAECF4; color: #0F1117; }
+
+  /* Smooth theme transition — include color so text fades too */
+  html { transition: background-color .25s, color .25s; }
+  *, *::before, *::after {
+    transition-property: background-color, border-color, color, box-shadow;
+    transition-duration: .22s;
+    transition-timing-function: ease;
+  }
+  /* Exclude transitions on animated elements to avoid jank */
+  .loading-dot, .skeleton, @keyframes, [class*="anim"] { transition: none !important; }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); font-size: 14px; line-height: 1.5; }
   button { font-family: inherit; cursor: pointer; border: none; outline: none; }
@@ -728,6 +903,19 @@
           <div class="provider-dot" id="provider-dot"></div>
           <span id="provider-pill-label">Gemini</span>
         </div>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light / dark mode" id="theme-toggle-btn">
+          <!-- Sun icon -->
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <!-- Moon icon -->
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
       </div>
     </nav>
 
@@ -820,6 +1008,11 @@
 <div id="toast-container"></div>
 
 <script>
+// Apply saved theme IMMEDIATELY — before any element renders
+if (localStorage.getItem('qm_theme') === 'dark') {
+  document.documentElement.classList.add('dark');
+}
+
 // ════════════════════════════════════════════════════════
 //  STATE
 // ════════════════════════════════════════════════════════
@@ -1152,6 +1345,12 @@ function appendResultBubble(d, question) {
 
   // Render chart
   if (hasChart) {
+    const chartEl = document.getElementById(uid + '-echart');
+    if (chartEl) {
+      chartEl.setAttribute('data-chart', JSON.stringify(d.chart));
+      chartEl.setAttribute('data-rows', JSON.stringify(rows));
+      chartEl.setAttribute('data-cols', JSON.stringify(cols));
+    }
     setTimeout(() => renderEChart(uid + '-echart', d.chart, rows, cols), 50);
   }
 
@@ -1240,6 +1439,20 @@ const CHART_COLORS = { // legacy compat
 // ════════════════════════════════════════════════════════
 //  ECHART — RICH RENDERER
 // ════════════════════════════════════════════════════════
+function getChartThemeColors() {
+  const dark = document.documentElement.classList.contains('dark');
+  return {
+    axisLabel:  dark ? '#8B95B8' : '#6B7280',
+    titleColor: dark ? '#D4D8F0' : '#374151',
+    splitLine:  dark ? '#2D3148' : '#F3F4F6',
+    axisLine:   dark ? '#3A3F5C' : '#E5E7EB',
+    tooltipBg:  dark ? '#1A1D27' : '#1E293B',
+    tooltipBorder: dark ? '#3A3F5C' : 'transparent',
+    tooltipText: dark ? '#E2E6F8' : '#F8FAFC',
+    labelColor: dark ? '#A8AECB' : '#6B7280',
+  };
+}
+
 function renderEChart(elId, chart, rows, cols, isDash = false) {
   const el = document.getElementById(elId);
   if (!el || !rows.length) return;
@@ -1259,19 +1472,22 @@ function renderEChart(elId, chart, rows, cols, isDash = false) {
   const xData = rows.map(r => String(r[xCol] ?? ''));
   const yData = rows.map(r => parseFloat(r[yCol]) || 0);
 
-  const baseTextStyle = { fontFamily: 'DM Sans, sans-serif', fontSize: 11, color: '#6B7280' };
+  // 🎨 Dynamic theme-aware colors
+  const tc = getChartThemeColors();
+  const baseTextStyle = { fontFamily: 'DM Sans, sans-serif', fontSize: 11, color: tc.axisLabel };
   const baseGrid = { top: title ? 48 : 28, right: 24, bottom: 56, left: 64 };
-  const baseSplitLine = { lineStyle: { color: '#F3F4F6', width: 1 } };
-  const baseAxisLine = { lineStyle: { color: '#E5E7EB' } };
+  const baseSplitLine = { lineStyle: { color: tc.splitLine, width: 1 } };
+  const baseAxisLine = { lineStyle: { color: tc.axisLine } };
   const baseTooltip = {
-    backgroundColor: '#1E293B', borderColor: 'transparent',
-    textStyle: { color: '#F8FAFC', fontSize: 12, fontFamily: 'DM Sans, sans-serif' },
+    backgroundColor: tc.tooltipBg,
+    borderColor: tc.tooltipBorder,
+    textStyle: { color: tc.tooltipText, fontSize: 12, fontFamily: 'DM Sans, sans-serif' },
     borderRadius: 8, padding: [8, 12],
-    extraCssText: 'box-shadow: 0 8px 24px rgba(0,0,0,.2)',
+    extraCssText: 'box-shadow: 0 8px 24px rgba(0,0,0,.25)',
   };
   const baseTitle = title ? {
     text: title,
-    textStyle: { fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: '600', color: '#374151' },
+    textStyle: { fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: '600', color: tc.titleColor },
     top: 8, left: 12,
   } : undefined;
 
@@ -1294,10 +1510,10 @@ function renderEChart(elId, chart, rows, cols, isDash = false) {
         radius: isDonut ? ['42%', '70%'] : ['0%', '70%'],
         center: ['50%', '45%'],
         data: pieData,
-        label: { show: !isDonut, formatter: '{b}\n{d}%', fontSize: 10, lineHeight: 14 },
+        label: { show: !isDonut, formatter: '{b}\n{d}%', fontSize: 10, lineHeight: 14, color: tc.labelColor },
         labelLine: { show: !isDonut, length: 8, length2: 6 },
         emphasis: { scaleSize: 6, itemStyle: { shadowBlur: 16, shadowColor: 'rgba(0,0,0,.2)' } },
-        itemStyle: { borderRadius: isDonut ? 4 : 2, borderWidth: 2, borderColor: '#fff' },
+        itemStyle: { borderRadius: isDonut ? 4 : 2, borderWidth: 2, borderColor: document.documentElement.classList.contains('dark') ? '#1A1D27' : '#fff' },
         animationType: 'scale', animationEasing: 'elasticOut',
       }],
     };
@@ -1305,7 +1521,7 @@ function renderEChart(elId, chart, rows, cols, isDash = false) {
       option.graphic = [{
         type: 'text', left: 'center', top: '42%',
         style: { text: 'Total\n' + pieData.reduce((a,b) => a + b.value, 0).toLocaleString(),
-          textAlign: 'center', fill: '#374151', fontSize: 13, fontWeight: '600', fontFamily: 'DM Sans',
+          textAlign: 'center', fill: tc.titleColor, fontSize: 13, fontWeight: '600', fontFamily: 'DM Sans',
           lineHeight: 20 },
       }];
     }
@@ -1324,7 +1540,7 @@ function renderEChart(elId, chart, rows, cols, isDash = false) {
         type: 'funnel', data: funnelData,
         left: '10%', width: '80%', top: title ? 48 : 20, bottom: 20,
         label: { show: true, position: 'inside', color: '#fff', fontSize: 11, fontFamily: 'DM Sans' },
-        itemStyle: { borderWidth: 2, borderColor: '#fff' },
+        itemStyle: { borderWidth: 2, borderColor: document.documentElement.classList.contains('dark') ? '#1A1D27' : '#fff' },
         emphasis: { label: { fontSize: 13 } },
         animationType: 'expansion',
       }],
@@ -1332,15 +1548,15 @@ function renderEChart(elId, chart, rows, cols, isDash = false) {
   }
   // ── SCATTER ──
   else if (type === 'scatter') {
-    const scatterData = rows.map(r => [parseFloat(r[xCol]) || 0, parseFloat(r[yCol]) || 0]);
     option = {
       title: baseTitle,
       grid: baseGrid, tooltip: { ...baseTooltip, trigger: 'item', formatter: p => `${p.marker} (${p.value[0]}, ${p.value[1]})` },
       xAxis: { type: 'value', name: xCol, nameTextStyle: { ...baseTextStyle, padding: [0,0,-4,0] }, axisLabel: { ...baseTextStyle }, splitLine: baseSplitLine, axisLine: baseAxisLine },
       yAxis: { type: 'value', name: yCol, nameTextStyle: baseTextStyle, axisLabel: { ...baseTextStyle }, splitLine: baseSplitLine, axisLine: baseAxisLine },
       series: [{
-        type: 'scatter', data: scatterData, symbolSize: 9,
-        itemStyle: { color: primary, opacity: .75, borderColor: '#fff', borderWidth: 1.5 },
+        type: 'scatter', data: rows.map(r => [parseFloat(r[xCol])||0, parseFloat(r[yCol])||0]),
+        symbolSize: 9,
+        itemStyle: { color: primary, opacity: .75, borderColor: document.documentElement.classList.contains('dark') ? '#1A1D27' : '#fff', borderWidth: 1.5 },
         emphasis: { itemStyle: { shadowBlur: 12, shadowColor: primary + '88' } },
       }],
     };
@@ -1361,7 +1577,7 @@ function renderEChart(elId, chart, rows, cols, isDash = false) {
       yAxis: { type: 'category', data: hxData, axisLabel: { ...baseTextStyle, width: 120, overflow: 'truncate' }, axisLine: baseAxisLine, axisTick: { show: false } },
       series: [{
         type: 'bar', data: hyData, barMaxWidth: 28,
-        label: { show: true, position: 'right', formatter: p => Number(p.value).toLocaleString(), fontSize: 10, color: '#6B7280', fontFamily: 'DM Sans' },
+        label: { show: true, position: 'right', formatter: p => Number(p.value).toLocaleString(), fontSize: 10, color: tc.labelColor, fontFamily: 'DM Sans' },
       }],
     };
   }
@@ -1377,7 +1593,7 @@ function renderEChart(elId, chart, rows, cols, isDash = false) {
         type: 'line', data: yData, smooth: 0.3,
         symbol: 'circle', symbolSize: xData.length > 20 ? 0 : 5,
         lineStyle: { color: primary, width: 2.5 },
-        itemStyle: { color: primary, borderColor: '#fff', borderWidth: 2 },
+        itemStyle: { color: primary, borderColor: document.documentElement.classList.contains('dark') ? '#1A1D27' : '#fff', borderWidth: 2 },
         areaStyle: isArea ? { color: { type:'linear', x:0,y:0,x2:0,y2:1, colorStops:[{offset:0,color:primary+'55'},{offset:1,color:primary+'08'}] } } : undefined,
         emphasis: { focus: 'series', itemStyle: { shadowBlur: 12, shadowColor: primary + '66' } },
       }],
@@ -1401,7 +1617,7 @@ function renderEChart(elId, chart, rows, cols, isDash = false) {
       yAxis: { type:'value', axisLabel: { ...baseTextStyle, formatter: v => Number(v).toLocaleString() }, splitLine: baseSplitLine, axisLine: { show: false } },
       series: [{
         type: 'bar', data: barData, barMaxWidth: 48, barCategoryGap: '35%',
-        label: { show: yData.length <= 10, position: 'top', formatter: p => Number(p.value).toLocaleString(), fontSize: 10, color: '#6B7280', fontFamily: 'DM Sans' },
+        label: { show: yData.length <= 10, position: 'top', formatter: p => Number(p.value).toLocaleString(), fontSize: 10, color: tc.labelColor, fontFamily: 'DM Sans' },
         emphasis: { itemStyle: { shadowBlur: 16, shadowColor: 'rgba(0,0,0,.15)' } },
       }],
     };
@@ -1912,6 +2128,34 @@ function toast(msg, duration=3000) {
   el.className = 'toast'; el.textContent = msg;
   container.appendChild(el);
   setTimeout(() => { el.classList.add('hide'); setTimeout(() => el.remove(), 300); }, duration);
+}
+
+
+// ════════════════════════════════════════════════════════
+//  THEME TOGGLE
+// ════════════════════════════════════════════════════════
+function toggleTheme() {
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('qm_theme', isDark ? 'dark' : 'light');
+  // Re-render ALL live ECharts with updated theme colors (not just resize)
+  setTimeout(() => {
+    document.querySelectorAll('.echart-wrap, .dash-echart').forEach(el => {
+      const inst = echarts.getInstanceByDom(el);
+      if (!inst) return;
+      // Pull the stored chart+rows data from element attributes if available
+      const chartStr = el.getAttribute('data-chart');
+      const rowsStr  = el.getAttribute('data-rows');
+      const colsStr  = el.getAttribute('data-cols');
+      if (chartStr && rowsStr && colsStr) {
+        try {
+          renderEChart(el.id, JSON.parse(chartStr), JSON.parse(rowsStr), JSON.parse(colsStr));
+        } catch(e) { inst.resize(); }
+      } else {
+        inst.resize();
+      }
+    });
+  }, 260);
+  toast(isDark ? '🌙 Dark mode on' : '☀️ Light mode on');
 }
 
 // ════════════════════════════════════════════════════════

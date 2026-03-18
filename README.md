@@ -1,237 +1,377 @@
-# 🧠 QueryMind — Natural Language to SQL
+<div align="center">
 
-> Ask your database questions in plain English. Get instant answers.
+<img src="https://img.shields.io/badge/QueryMind-v12-2563EB?style=for-the-badge&logoColor=white" alt="Version">
+<img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+<img src="https://img.shields.io/badge/FastAPI-0.111+-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
+<img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License">
 
-QueryMind is a full-stack AI web application that translates natural language questions into SQL queries using Large Language Models (LLMs), executes them on a SQLite database, and displays the results as a table, chart, and explained SQL.
+# 🧠 QueryMind
+
+### **Natural Language → SQL Intelligence Platform**
+
+*Ask your database anything in plain English. No SQL required.*
+
+[✨ Features](#-features) · [🚀 Quick Start](#-quick-start) · [⚙️ Configuration](#️-configuration) · [📡 API Reference](#-api-reference) · [🤝 Contributing](#-contributing)
+
+</div>
 
 ---
 
-## 🎯 What It Does
+## 🌟 What is QueryMind?
 
-| You type | QueryMind does |
-|---|---|
-| *"Show all students with CGPA above 8.5"* | `SELECT * FROM students WHERE cgpa > 8.5` |
-| *"Which department has the most students?"* | `SELECT d.name, COUNT(*) FROM students s JOIN departments d ON s.dept_id = d.id GROUP BY d.id ORDER BY COUNT(*) DESC LIMIT 1` |
-| *"What is total revenue this month?"* | `SELECT SUM(total_amount) FROM orders WHERE strftime('%Y-%m', order_date) = strftime('%Y-%m', 'now')` |
+QueryMind is a **full-stack, AI-powered web application** that converts plain English questions into SQL queries, executes them, and presents results as interactive charts with AI-generated insights — all in real time.
+
+```
+User: "Which department has the most students and what's the average CGPA?"
+  ↓
+QueryMind: SELECT d.name, COUNT(s.id) AS students, ROUND(AVG(s.cgpa), 2) AS avg_cgpa
+           FROM students s JOIN departments d ON s.dept_id = d.id
+           GROUP BY d.name ORDER BY students DESC LIMIT 100
+  ↓
+→ Bar chart  →  Data table  →  AI insights  →  Step-by-step explanation
+```
+
+No SQL knowledge needed. Works with **SQLite, PostgreSQL, MySQL, MS SQL Server, DuckDB**, and local files (CSV, Excel, Parquet, JSON).
 
 ---
 
-## 🏗️ Project Architecture
+## ✨ Features
 
-```
-Browser (HTML/JS)
-    │  User types question → JavaScript sends POST /api/query
-    ▼
-FastAPI Server (server.py)
-    │  Validates request → reads schema → calls AI → executes SQL
-    ▼
-AI Provider (nl_to_sql.py)
-    │  Gemini / OpenAI / Groq — generates SQL from English + schema
-    ▼
-SQLite Database (database.py)
-    │  Executes SQL → returns Pandas DataFrame
-    ▼
-Browser (HTML/JS)
-    Renders table + chart + SQL explanation
-```
+### 🔍 Core Query Engine
+| Feature | Description |
+|---------|-------------|
+| **Natural Language → SQL** | Converts plain English to accurate SQL using LLMs |
+| **Conversational Memory** | 5-turn context so follow-ups like *"show only the top 5"* work |
+| **Confidence Retry** | Auto-retries with enhanced prompt when AI confidence < 60% |
+| **LRU Cache** | 200-entry cache returns identical queries instantly (⚡ badge) |
+| **Voice Input** | Web Speech API — query hands-free |
+| **Share Links** | UUID-based shareable result links |
 
-### File Structure
+### 📊 Visualisation
+| Feature | Description |
+|---------|-------------|
+| **8 Chart Types** | Bar, H-Bar, Line, Area, Pie, Donut, Scatter, Funnel — auto-selected |
+| **10 Colour Themes** | Blue, Teal, Violet, Amber, Rose, Emerald, Orange, Cyan, Indigo, Pink |
+| **Pivot Table** | Drag-and-drop aggregation on any result set |
+| **Chart Builder** | Visual SQL builder: pick table + axes + aggregation + chart type |
+| **Text to Dashboard** | One goal → 4-6 coordinated KPI cards + charts |
+| **PDF Export** | Branded PDF for query results and full dashboards |
 
-```
-querymind/
-├── server.py              ← FastAPI REST API (the glue)
-├── database.py            ← All SQLite operations
-├── nl_to_sql.py           ← AI query generation engine
-├── file_importer.py       ← Upload CSV/Excel/JSON → database
-├── sample_databases.py    ← Creates 3 demo databases
-├── requirements.txt       ← Python dependencies
-├── .env                   ← API keys (never commit this!)
-├── static/
-│   └── index.html         ← Entire frontend (HTML + CSS + JS)
-└── databases/
-    ├── college.db
-    ├── ecommerce.db
-    ├── hospital.db
-    └── uploads/           ← User-uploaded databases stored here
-```
+### 🤖 Intelligence Layer *(Unique Features)*
+> These features don't exist in any other open-source Text-to-SQL tool.
+
+| Feature | Description |
+|---------|-------------|
+| **🧠 SQL Reasoning Trace** | AI shows chain-of-thought *before* writing SQL — which tables, which JOINs, why |
+| **🔔 Watchdog Alerts** | *"Alert me when daily orders fall below 50"* → AI writes the SQL → runs on schedule → emails you |
+| **🧬 Query DNA Graph** | Interactive force-layout graph of table relationships, sized by query frequency |
+| **🔍 Schema Detective** | AI detects your database industry and auto-generates relevant example questions |
+
+### 🧹 Data Management
+| Feature | Description |
+|---------|-------------|
+| **Data Cleaner** | Detects 9 issue types (duplicates, nulls, outliers, type errors) — one click, saves back to source |
+| **Correlation Matrix** | Pearson heatmap with ECharts + highlight chips for notable pairs |
+| **Data Profiling** | Per-column null %, unique count, min/max/mean, top-5 values |
+| **Data Dictionary** | AI-generated documentation for every table and column, downloadable as Markdown |
+| **DuckDB Engine** | Columnar query engine for large CSV/Parquet (>10 MB) — no conversion needed |
+| **External Connections** | Connect PostgreSQL, MySQL, MS SQL, DuckDB via connection strings |
+
+### 👥 Auth & Reports
+| Feature | Description |
+|---------|-------------|
+| **JWT Authentication** | Register/login, per-user query history, 30-day tokens |
+| **Scheduled Email Reports** | Daily/Weekly/Monthly AI-generated reports via SMTP |
+| **Sidebar Toggle** | Collapse/expand with `Ctrl+B` / `Cmd+B`, state persisted |
 
 ---
 
 ## 🚀 Quick Start
 
-### Step 1 — Clone and create environment
+### Prerequisites
+- Python 3.10+
+- One AI provider API key (Gemini is free)
 
+### 1. Clone & Install
 ```bash
 git clone https://github.com/yourusername/querymind.git
 cd querymind
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate        # Mac/Linux
-venv\Scripts\activate           # Windows
-
-# Install dependencies
 pip install -r requirements.txt
 ```
 
-### Step 2 — Get a free API key
-
-Go to **https://aistudio.google.com** → Get API Key → Create API Key
-
-Create a `.env` file:
+### 2. Configure
+```bash
+cp .env.example .env
+```
+Edit `.env` and add at least **one** AI provider key:
 ```env
-GEMINI_API_KEY=AIzaYourKeyHere
+GEMINI_API_KEY=AIza...        # Free → aistudio.google.com
+GROQ_API_KEY=gsk_...          # Free → console.groq.com
+OPENAI_API_KEY=sk-...         # Paid → platform.openai.com
 ```
 
-### Step 3 — Run
-
+### 3. Run
 ```bash
 python server.py
 ```
 
-Open **http://localhost:8000** in your browser.
+Open **http://localhost:8000** — three sample databases (College, E-Commerce, Hospital) are created automatically on first run.
 
-That's it. The three sample databases are created automatically on first run.
-
----
-
-## 📦 Sample Databases
-
-Three realistic databases are included:
-
-| Database | Tables | Rows | Sample Question |
-|---|---|---|---|
-| 🎓 College | students, departments, professors, courses, enrollments | ~900 | "Show top 5 students by CGPA" |
-| 🛒 E-Commerce | customers, products, categories, orders, order_items | ~1,500 | "Which product sold the most?" |
-| 🏥 Hospital | patients, doctors, appointments, prescriptions, medicines | ~1,200 | "List patients with Diabetes" |
+> **That's it.** No Docker, no npm, no webpack, no build step.
 
 ---
 
-## 📁 Import Your Own Data
+## ⚙️ Configuration
 
-Upload any of these formats and query them immediately:
+### Environment Variables
 
-| Format | Extension |
-|---|---|
-| CSV / TSV | `.csv` `.tsv` `.txt` |
-| Excel | `.xlsx` `.xls` |
-| JSON | `.json` |
-| HTML Table | `.html` `.htm` |
-| Parquet | `.parquet` |
-| SQLite | `.db` `.sqlite` `.sqlite3` |
+```env
+# ── AI Providers (at least one required) ──────────────────
+GEMINI_API_KEY=AIza...          # Free — https://aistudio.google.com
+GROQ_API_KEY=gsk_...            # Free — https://console.groq.com
+OPENAI_API_KEY=sk-...           # Paid — https://platform.openai.com
+# Ollama: install locally from https://ollama.ai (no key needed)
 
----
+# ── Security (strongly recommended for production) ─────────
+QM_SECRET_KEY=...               # Encrypts stored API keys (32 chars random)
+QM_JWT_SECRET=...               # Signs JWT tokens (64 hex chars random)
+QM_JWT_EXPIRE_DAYS=30           # Token expiry in days (default: 30)
 
-## 🤖 AI Providers
+# ── Email / Scheduled Reports (optional) ──────────────────
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=you@gmail.com
+SMTP_PASSWORD=your_app_password  # Gmail: App Password, not main password
+SMTP_FROM=QueryMind <you@gmail.com>
 
-| Provider | Cost | Speed | Setup |
-|---|---|---|---|
-| **Google Gemini** | ✅ Free tier | Fast (~1s) | Get key at aistudio.google.com |
-| **Groq (LLaMA)** | ✅ Free tier | Very fast (~0.5s) | Get key at console.groq.com |
-| **OpenAI GPT** | 💰 Paid | Medium (~2s) | Get key at platform.openai.com |
-| **Ollama (Local)** | ✅ Free, offline | Varies | Install from ollama.ai |
-
----
-
-## 🌐 API Reference
-
-All endpoints return JSON. Full interactive docs at `http://localhost:8000/docs`.
-
-### POST /api/query — Main endpoint
-
-**Request:**
-```json
-{
-  "question": "Show all students with CGPA above 8.5",
-  "db_name":  "🎓 College Database",
-  "provider": "gemini",
-  "api_key":  "AIzaYourKey",
-  "max_rows": 200
-}
+# ── Server ─────────────────────────────────────────────────
+PORT=8000
 ```
 
-**Response:**
-```json
-{
-  "sql":           "SELECT * FROM students WHERE cgpa > 8.5 LIMIT 100",
-  "explanation":   "Filters students where CGPA is greater than 8.5",
-  "confidence":    0.97,
-  "columns":       ["id", "name", "cgpa", "dept_id", "year"],
-  "rows":          [{"id": 1, "name": "Arjun Sharma", "cgpa": 9.1, ...}],
-  "total_rows":    42,
-  "returned_rows": 42,
-  "exec_time_s":   1.23
-}
+**Generate secure keys:**
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(32))"   # QM_SECRET_KEY
+python -c "import secrets; print(secrets.token_hex(32))"       # QM_JWT_SECRET
 ```
 
-### Other Endpoints
-
-```
-GET  /api/databases              → {"databases": ["🎓 College Database", ...]}
-GET  /api/schema/{db_name}       → Table + column info with row counts
-GET  /api/examples/{db_name}     → Example queries for the database
-GET  /api/providers              → AI provider availability
-POST /api/import                 → Upload file (multipart/form-data)
-DELETE /api/database/{db_name}   → Delete uploaded database
-GET  /api/history                → Last 50 queries
-GET  /api/health                 → Server status
-```
-
----
-
-## ☁️ Deployment
-
-### Railway (Recommended — free tier)
-
-1. Push code to GitHub
-2. Go to railway.app → New Project → Deploy from GitHub
-3. Add environment variable: `GEMINI_API_KEY=your_key`
-4. Railway auto-detects Python and deploys
-
-### Render (Free tier)
-
-1. Go to render.com → New Web Service
-2. Connect GitHub repo
-3. Build command: `pip install -r requirements.txt`
-4. Start command: `uvicorn server:app --host 0.0.0.0 --port $PORT`
-
-### Local Network (Classroom demo)
+### Optional Dependencies
 
 ```bash
-# Find your local IP: ifconfig (Mac/Linux) or ipconfig (Windows)
-uvicorn server:app --host 0.0.0.0 --port 8000
-# Anyone on same WiFi can visit: http://YOUR_IP:8000
+pip install duckdb            # Faster queries on large CSV/Parquet files
+pip install psycopg2-binary   # PostgreSQL connections
+pip install pymysql           # MySQL / MariaDB connections
+pip install pyodbc            # MS SQL Server connections
+```
+
+### Local AI (Fully Offline)
+```bash
+# Install Ollama from https://ollama.ai
+ollama pull qwen2.5-coder:7b
+ollama serve
+# Select "Ollama" in the provider dropdown — no API key needed
 ```
 
 ---
 
-## 🛡️ Security
+## 📁 Project Structure
 
-- Only `SELECT` queries are allowed — `DROP`, `DELETE`, `UPDATE`, `INSERT` are blocked
-- API keys are never stored server-side — passed per request, never logged
-- File uploads are validated and size-limited (50 MB max)
-- `.env` file should never be committed to Git
+```
+querymind/
+├── server.py              # FastAPI backend — 40+ REST endpoints (1,700 lines)
+├── database.py            # DB registry, schema extraction, query routing
+├── nl_to_sql.py           # AI engine — NL→SQL, insights, reasoning, docs (1,400 lines)
+├── file_importer.py       # CSV/Excel/JSON/Parquet/SQLite import pipeline
+├── external_db.py         # PostgreSQL/MySQL/MSSQL/DuckDB connection layer
+├── data_cleaner.py        # 9-type issue detection and cleaning engine
+├── auth.py                # JWT auth, PBKDF2 password hashing, user CRUD
+├── email_reporter.py      # Background scheduler, SMTP mailer, HTML emails
+├── pdf_exporter.py        # ReportLab branded PDF builder
+├── sample_databases.py    # Creates 3 built-in sample databases on first run
+├── static/
+│   └── index.html         # Entire frontend — HTML + CSS + JS (~6,300 lines)
+├── databases/             # SQLite files (auto-created at runtime)
+│   ├── college.db
+│   ├── ecommerce.db
+│   ├── hospital.db
+│   └── querymind_meta.db  # History, users, alerts, docs, connections
+├── requirements.txt
+├── .env.example
+└── README.md
+```
+
+---
+
+## 📡 API Reference
+
+### Authentication
+```
+POST /api/auth/register     Body: {name, email, password}    → {token, user}
+POST /api/auth/login        Body: {email, password}           → {token, user}
+GET  /api/auth/me           Header: Authorization: Bearer...  → {user}
+PUT  /api/auth/me           Body: {name?, password?}          → {token, user}
+```
+
+### Queries
+```
+POST   /api/query               Natural language → SQL → execute → results
+POST   /api/execute             Raw SQL execution
+GET    /api/history             Query history (scoped per user if authenticated)
+DELETE /api/history             Clear history
+```
+
+### Databases & Files
+```
+GET    /api/databases           List all registered databases
+GET    /api/schema/{db}         Full schema with row counts
+POST   /api/import              Upload file (multipart, use_duckdb flag supported)
+POST   /api/connect             Save external DB connection string
+GET    /api/connections         List saved connections
+DELETE /api/connections/{name}  Remove connection
+```
+
+### Intelligence Layer
+```
+POST /api/reasoning-trace       AI chain-of-thought before SQL generation
+POST /api/schema-detective      Detect database industry + generate smart questions
+GET  /api/lineage/{db}          Query DNA: table graph nodes/edges + query history
+POST /api/watchdog              Create data alert
+GET  /api/watchdog              List all alerts with status
+POST /api/watchdog/{id}/run     Run alert check immediately
+PATCH /api/watchdog/{id}/toggle Pause or resume an alert
+DELETE /api/watchdog/{id}       Delete alert
+```
+
+### Data Tools
+```
+GET  /api/profile/{db}              Column statistics, null rates, top values
+GET  /api/correlate/{db}/{table}    Pearson correlation matrix
+POST /api/clean/analyze             Detect data quality issues
+POST /api/clean/apply               Apply cleaning operations + write back to DB
+POST /api/clean/export/csv          Download cleaned dataset as CSV
+POST /api/clean/export/pdf          Download branded cleaning report PDF
+POST /api/docs/generate             Generate AI data dictionary
+GET  /api/docs/{db}                 Retrieve saved documentation
+GET  /api/docs/{db}/markdown        Download dictionary as .md file
+```
+
+### Reports & Export
+```
+POST /api/reports/schedule          Create scheduled email report
+GET  /api/reports/schedule          List all scheduled reports
+DELETE /api/reports/schedule/{id}   Delete report
+PATCH /api/reports/schedule/{id}/toggle  Pause/resume
+POST /api/reports/run/{id}          Run report now
+POST /api/export-pdf                Export query result as PDF
+POST /api/export-dashboard-pdf      Export dashboard as PDF
+POST /api/share                     Create shareable result link
+GET  /api/share/{uuid}              Retrieve shared result
+```
+
+---
+
+## 🗂️ Navigation Tabs
+
+| Tab | Description |
+|-----|-------------|
+| **Query** | Natural language → SQL, chart, AI insights, SQL reasoning trace |
+| **Dashboard** | Plain English goal → 4-6 coordinated KPI cards + charts |
+| **Profiling** | Column statistics, null rates, Pearson correlation matrix |
+| **History** | Persistent query log with one-click re-run |
+| **Docs** | AI data dictionary with Markdown download |
+| **Charts** | Visual chart builder with live SQL preview |
+| **Clean** | Automated data quality detection + one-click cleaning |
+| **Watchdog** | Natural language data alerts with email notification |
+| **DNA** | Interactive table relationship graph + query history heatmap |
+
+---
+
+## ⌨️ Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Enter` | Send query |
+| `Ctrl` / `Cmd` + `B` | Toggle sidebar collapse |
+| `Escape` | Close any open modal |
+
+---
+
+## 🔒 Security Notes
+
+- **SQL Injection** — SELECT-only whitelist blocks all writes. Dangerous keywords (`DROP`, `DELETE`, `UPDATE`, `INSERT`, `ALTER`, `CREATE`, `TRUNCATE`, `ATTACH`, `PRAGMA`) are blocklisted.
+- **Passwords** — PBKDF2-HMAC-SHA256, 260,000 iterations, unique 16-byte random salt per user.
+- **Timing attacks** — `hmac.compare_digest()` used for constant-time password comparison.
+- **Encryption** — API keys and DB connection strings encrypted at rest with Fernet AES-256.
+- **JWT** — HS256 signed, tamper-proof. Stateless — no server-side session storage.
+- **File uploads** — Hard-capped at 200 MB to prevent denial-of-service.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology | Purpose |
-|---|---|---|
-| Language | Python 3.11+ | All backend logic |
-| Web Framework | FastAPI | REST API server |
-| Database | SQLite | Data storage + querying |
-| AI | Gemini / GPT / Groq | Natural language → SQL |
-| Data | Pandas | DataFrame operations |
-| Frontend | HTML + CSS + JS | User interface |
-| Charts | Chart.js | Data visualisation |
+| | Technology |
+|-|-----------|
+| **Backend** | Python 3.10+, FastAPI, Uvicorn |
+| **Data** | Pandas, NumPy, SQLAlchemy |
+| **Databases** | SQLite (stdlib), DuckDB, PostgreSQL, MySQL, MS SQL |
+| **AI** | Google Gemini, OpenAI GPT, Groq LLaMA, Ollama |
+| **Charts** | Apache ECharts 5.4.3 |
+| **PDF** | ReportLab |
+| **Auth** | Custom HS256 JWT (stdlib, no PyJWT dependency) |
+| **Encryption** | Fernet (cryptography library) |
+| **Frontend** | Vanilla HTML/CSS/JS — single file, zero build tools |
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] SQL Dialect Translator (SQLite ↔ PostgreSQL ↔ BigQuery)
+- [ ] Multi-Database Federation (cross-DB JOINs via pandas merge)
+- [ ] Data Story Generator (AI-written narrative reports with charts)
+- [ ] Query Version History (rollback table state like Git)
+- [ ] Semantic Query Search (vector embeddings over query history)
+- [ ] Team Workspaces (shared query libraries, access control)
+- [ ] SQL Learning Mode (interactive tutor with practice questions)
+- [ ] Docker / Docker Compose support
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repo
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+**Guidelines:**
+- Keep the zero-build philosophy — no npm/webpack in the frontend
+- Add a test for any new backend module
+- Follow existing patterns: type hints, docstrings, error handling
 
 ---
 
 ## 📄 License
 
-MIT License — free to use, modify, and distribute.
+MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
-*Built as a complete learning project. Read the code comments — every line is explained.*
+## 🙏 Acknowledgements
+
+- [Spider Dataset](https://yale-lily.github.io/spider) — NL2SQL benchmark that inspired this project
+- [Apache ECharts](https://echarts.apache.org) — Excellent charting library powering all visualisations
+- [FastAPI](https://fastapi.tiangolo.com) — The backbone of the entire backend
+- [Google Gemini](https://ai.google.dev) — Default free AI provider
+- [Groq](https://console.groq.com) — Blazing-fast LLaMA inference
+
+---
+
+<div align="center">
+
+**Made with ❤️ using Python, FastAPI, and Apache ECharts**
+
+⭐ Star this repo if you found it useful!
+
+</div>

@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://img.shields.io/badge/QueryMind-v12-2563EB?style=for-the-badge&logoColor=white" alt="Version">
+<img src="https://img.shields.io/badge/QueryMind-2563EB?style=for-the-badge&logoColor=white" alt="Version">
 <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
 <img src="https://img.shields.io/badge/FastAPI-0.111+-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
 <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License">
